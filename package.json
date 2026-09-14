@@ -2,6 +2,7 @@
   "name": "classroom-web",
   "version": "0.1.0",
   "private": true,
+  "description": "Painel web do Classroom (professor e admin)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
