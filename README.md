@@ -28,5 +28,3 @@ Abra [http://localhost:3000](http://localhost:3000). A API precisa estar em [htt
 | Variável | Padrão | Uso |
 |---|---|---|
 | `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Base da classroom-api |
-
-O login web usa `client_type: "web"`: o access token volta no JSON; o refresh token vai em cookie HttpOnly (`path=/auth`).
