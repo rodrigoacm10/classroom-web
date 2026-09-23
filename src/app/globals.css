@@ -1,29 +1,277 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f4f1ea;
-  --foreground: #1c1915;
-  --muted: #6b6458;
-  --surface: #fffdf8;
-  --line: #ddd6c8;
-  --accent: #1f4d47;
-  --accent-hover: #173b36;
+@theme {
+  --color-ink: #18191b;
+  --color-muted: #5c5e63;
+  --color-paper: #ffffff;
+  --color-surface: #f5f5f5;
+  --color-border: #e4e4e4;
+  /* Boundaries of interactive controls need 3:1; --color-border is for dividers only. */
+  --color-control-border: #8a8c91;
+  --color-accent: #ffc400;
+  --color-accent-surface: #fff4cc;
+  --color-success: #1e7a44;
+  --color-success-surface: #e7f2eb;
+  --color-warn: #b45309;
+  --color-danger: #c42b1c;
+  --color-danger-surface: #fbecea;
+  --color-on-ink: #ffffff;
+  --color-on-ink-muted: #b8b9bd;
+  --color-on-ink-subtle: #86888d;
+  --color-on-ink-border: #3a3b3f;
+  --color-on-ink-control-border: #75777c;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-label: 13px;
+  --text-label--line-height: 16px;
+  --text-body: 15px;
+  --text-body--line-height: 22px;
+  --text-heading: 18px;
+  --text-heading--line-height: 24px;
+  --text-title: 24px;
+  --text-title--line-height: 30px;
+  /* Section headings are the workhorse; finale is reserved for the closing ask,
+     so the page has a crescendo instead of eight headings at one weight. The two
+     smaller steps exist so the h1 stays dominant on phones, where a single fixed
+     40px would outrank it. */
+  --text-section-sm: 28px;
+  --text-section-sm--line-height: 32px;
+  --text-section-md: 32px;
+  --text-section-md--line-height: 38px;
+  --text-section: 40px;
+  --text-section--line-height: 46px;
+  --text-finale: 52px;
+  --text-finale--line-height: 58px;
+  --text-code-sm: 44px;
+  --text-code-sm--line-height: 52px;
+  --text-code: 56px;
+  --text-code--line-height: 64px;
+  --text-display-lg: 64px;
+  --text-display-lg--line-height: 68px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0em;
+  --tracking-caps: 0.08em;
+  --tracking-code: 0.04em;
+
+  --leading-caption: 16px;
+  --leading-body: 22px;
+  --leading-heading: 24px;
+  --leading-title: 30px;
+  --leading-section-sm: 32px;
+  --leading-section-md: 38px;
+  --leading-section: 46px;
+  --leading-finale: 58px;
+  --leading-code-sm: 52px;
+  --leading-code: 64px;
+  --leading-display-lg: 68px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  --width-content: 720px;
+  --max-width-content: 720px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-surface: var(--surface);
-  --color-line: var(--line);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --page-max: 1440px;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100%;
+  scrollbar-color: var(--color-control-border) var(--color-paper);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  caret-color: var(--color-ink);
+  overflow-x: hidden;
+  max-width: 100%;
 }
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Delays matter as much as durations here: a staggered sequence whose duration
+     is collapsed but whose delay survives leaves every element parked in its
+     starting keyframe for over a second, then snaps. Zero both. */
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+.landing-stage {
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+}
+
+.landing-stage::before,
+.landing-stage::after {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.landing-stage::before {
+  background-image: repeating-linear-gradient(
+    -32deg,
+    transparent 0,
+    transparent 11px,
+    var(--color-border) 11px,
+    var(--color-border) 12px
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 max(0px, calc((100vw - var(--page-max)) / 2 - 32px)),
+    transparent max(0px, calc((100vw - var(--page-max)) / 2)),
+    transparent calc(100vw - max(0px, calc((100vw - var(--page-max)) / 2))),
+    #000 calc(100vw - max(0px, calc((100vw - var(--page-max)) / 2))),
+    #000 100%
+  );
+}
+
+.landing-stage::after {
+  left: max(0px, calc((100vw - var(--page-max)) / 2));
+  right: auto;
+  width: min(100%, var(--page-max));
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+}
+
+.landing-foreground {
+  position: relative;
+  z-index: 1;
+}
+
+/* Hero arrival: the room is measured, then the class lands in it. Pure CSS so it
+   plays without JS, and the global reduced-motion guard collapses it to the
+   final state rather than removing it. */
+/* Neither keyframe touches opacity: every pin and ring is legible at the first
+   frame, so the map is never a half-drawn illustration waiting on JS. The motion
+   is the class settling into a room already being measured. */
+@keyframes locus-measure {
+  from {
+    transform: scale(0.62);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes locus-land {
+  from {
+    transform: translateY(-13px) scale(0.72);
+  }
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.locus-measure {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: locus-measure 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.locus-land {
+  animation: locus-land 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Long-form legal and help copy. The measure is set by the page shell. */
+.legal-prose > * + * {
+  margin-top: var(--text-body--line-height);
+}
+
+.legal-prose h2 {
+  margin-top: calc(var(--text-body--line-height) * 2);
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-ink);
+}
+
+.legal-prose h3 {
+  margin-top: calc(var(--text-body--line-height) * 1.5);
+  font-size: var(--text-heading);
+  line-height: var(--text-heading--line-height);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-ink);
+}
+
+.legal-prose p,
+.legal-prose li {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--color-muted);
+}
+
+.legal-prose strong {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-ink);
+}
+
+.legal-prose ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.legal-prose ul > * + * {
+  margin-top: 0;
+}
+
+.legal-prose a {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
+.legal-prose a:hover {
+  text-decoration-thickness: 2px;
+}
+

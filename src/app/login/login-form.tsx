@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { ApiError, login } from "@/lib/api";
+import { buttonClass, fieldClass } from "@/components/ui/interactive";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -25,7 +26,7 @@ export function LoginForm() {
         setError(cause.message);
       } else {
         setError(
-          "Não foi possível conectar à API. Confirme se ela está em http://localhost:8000.",
+          "Não foi possível falar com o servidor. Verifique sua conexão e tente de novo.",
         );
       }
     } finally {
@@ -34,50 +35,63 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4">
-      <label className="flex flex-col gap-2 text-sm">
-        E-mail
+    <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-5">
+      <label className="flex flex-col gap-2">
+        <span className="font-semibold text-label/caption text-ink">E-mail</span>
         <input
           type="email"
           name="email"
           autoComplete="email"
           required
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "login-error" : undefined}
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="rounded-xl border border-line bg-surface px-3 py-2.5 text-base outline-none ring-accent/30 focus:ring-4"
+          className={fieldClass({ invalid: Boolean(error) })}
         />
       </label>
 
-      <label className="flex flex-col gap-2 text-sm">
-        Senha
+      <label className="flex flex-col gap-2">
+        <span className="font-semibold text-label/caption text-ink">Senha</span>
         <input
           type="password"
           name="password"
           autoComplete="current-password"
           required
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "login-error" : undefined}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="rounded-xl border border-line bg-surface px-3 py-2.5 text-base outline-none ring-accent/30 focus:ring-4"
+          className={fieldClass({ invalid: Boolean(error) })}
         />
       </label>
 
-      {error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-          {error}
-        </p>
-      ) : null}
+      <div aria-live="polite">
+        {error ? (
+          <p
+            id="login-error"
+            className="rounded-sm border border-danger bg-danger-surface px-4 py-3 text-label leading-[18px] text-ink"
+          >
+            {error}
+          </p>
+        ) : null}
 
-      {success ? (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-          Autenticado. O access token ficou nesta sessão; o painel das turmas
-          vem a seguir.
-        </p>
-      ) : null}
+        {success ? (
+          <p className="rounded-sm border border-success bg-success-surface px-4 py-3 text-label leading-[18px] text-ink">
+            Autenticado. A sessão ficou neste navegador; o painel das turmas vem a
+            seguir.
+          </p>
+        ) : null}
+      </div>
 
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-60"
+        aria-busy={pending}
+        className={buttonClass({
+          variant: "ink",
+          className: "mt-1 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-ink",
+        })}
       >
         {pending ? "Entrando…" : "Entrar"}
       </button>
