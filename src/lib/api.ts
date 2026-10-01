@@ -12,3 +12,7 @@ export * from "./api-client";
 export * from "@/services/auth";
 export * from "@/services/tenants";
 export * from "@/services/password-recovery";
+export * from "@/services/dashboard";
+export * from "@/services/subject-classes";
+export * from "@/services/attendance";
+export * from "@/services/user";
