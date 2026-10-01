@@ -38,6 +38,12 @@ export function TenantPicker() {
           router.replace("/login");
           return;
         }
+        if (active.length === 1) {
+          const switched = await switchTenant(active[0].id);
+          setStoredToken(switched.access_token);
+          router.replace("/dashboard");
+          return;
+        }
         setTenants(active);
       } catch {
         if (isMounted) {
@@ -67,6 +73,7 @@ export function TenantPicker() {
       const result = await switchTenant(tenant.id);
       setStoredToken(result.access_token);
       setSuccess(true);
+      router.replace("/dashboard");
     } catch (cause) {
       if (cause instanceof ApiError) {
         setError(cause.message);

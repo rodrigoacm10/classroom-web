@@ -52,16 +52,16 @@ export function LoginForm() {
       }
 
       if (activeTenants.length === 1) {
-        // Auto-switch
+        // Auto-switch e redirecionamento direto para o dashboard
         setPhase("switching");
         const switched = await switchTenant(activeTenants[0].id, baseToken);
         setStoredToken(switched.access_token);
         setSuccess(true);
-        setPending(false);
+        router.replace("/dashboard");
         return;
       }
 
-      // Multiple tenants — base token kept in memory, redirect to picker
+      // Mais de uma instituição ativa — redireciona para a tela de escolha
       router.push("/tenants");
     } catch (cause) {
       if (cause instanceof ApiError) {
