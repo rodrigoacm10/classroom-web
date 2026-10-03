@@ -10,7 +10,8 @@ import { getInitials } from "@/lib/utils";
 type NavItem = {
   href: string;
   label: string;
-  icon: React.ReactNode;
+  icon: (active: boolean) => React.ReactNode;
+  exact?: boolean;
 };
 
 function HomeIcon({ active }: { active: boolean }) {
@@ -26,76 +27,97 @@ function HomeIcon({ active }: { active: boolean }) {
   );
 }
 
-function ClassesIcon() {
+function ClassesIcon({ active }: { active: boolean }) {
+  const stroke = active ? "var(--color-accent)" : "var(--color-on-ink-muted)";
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-      <rect x="3" y="4" width="6" height="6" rx="1.2" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" />
-      <rect x="11" y="4" width="6" height="6" rx="1.2" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" />
-      <rect x="3" y="12" width="6" height="4" rx="1.2" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" />
-      <rect x="11" y="12" width="6" height="4" rx="1.2" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" />
+      <rect x="3" y="4" width="6" height="6" rx="1.2" stroke={stroke} strokeWidth="1.6" />
+      <rect x="11" y="4" width="6" height="6" rx="1.2" stroke={stroke} strokeWidth="1.6" />
+      <rect x="3" y="12" width="6" height="4" rx="1.2" stroke={stroke} strokeWidth="1.6" />
+      <rect x="11" y="12" width="6" height="4" rx="1.2" stroke={stroke} strokeWidth="1.6" />
     </svg>
   );
 }
 
-function AttendanceIcon() {
+function AttendanceIcon({ active }: { active: boolean }) {
+  const stroke = active ? "var(--color-accent)" : "var(--color-on-ink-muted)";
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-      <circle cx="10" cy="10" r="7" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" />
-      <path d="M10 6.5v4l2.5 1.5" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="10" cy="10" r="7" stroke={stroke} strokeWidth="1.6" />
+      <path d="M10 6.5v4l2.5 1.5" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
 
-function StudentsIcon() {
+function RoomsIcon({ active }: { active: boolean }) {
+  const stroke = active ? "var(--color-accent)" : "var(--color-on-ink-muted)";
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-      <circle cx="7" cy="7" r="2.4" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" />
-      <circle cx="13.2" cy="7" r="2.4" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" />
-      <path d="M3.5 15.5c.6-2.2 2.2-3.4 4.5-3.4s3.9 1.2 4.5 3.4M12 12.2c1.6 0 3 .8 3.6 2.3" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M10 2.5a5.5 5.5 0 0 1 5.5 5.5c0 4-5.5 9.5-5.5 9.5S4.5 12 4.5 8A5.5 5.5 0 0 1 10 2.5z"
+        stroke={stroke}
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <circle cx="10" cy="8" r="1.8" stroke={stroke} strokeWidth="1.6" />
     </svg>
   );
 }
 
-function ReportsIcon() {
+function StudentsIcon({ active }: { active: boolean }) {
+  const stroke = active ? "var(--color-accent)" : "var(--color-on-ink-muted)";
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-      <path d="M4 15V9M10 15V5M16 15v-3" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="7" cy="7" r="2.4" stroke={stroke} strokeWidth="1.6" />
+      <circle cx="13.2" cy="7" r="2.4" stroke={stroke} strokeWidth="1.6" />
+      <path d="M3.5 15.5c.6-2.2 2.2-3.4 4.5-3.4s3.9 1.2 4.5 3.4M12 12.2c1.6 0 3 .8 3.6 2.3" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
 
-function EvidencesIcon() {
+function ReportsIcon({ active }: { active: boolean }) {
+  const stroke = active ? "var(--color-accent)" : "var(--color-on-ink-muted)";
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-      <rect x="3" y="5.5" width="14" height="11" rx="2" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" />
-      <path d="M7 5.5l1.2-2h3.6L13 5.5" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="10" cy="11" r="2.4" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" />
+      <path d="M4 15V9M10 15V5M16 15v-3" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
 
-function SettingsIcon() {
+function EvidencesIcon({ active }: { active: boolean }) {
+  const stroke = active ? "var(--color-accent)" : "var(--color-on-ink-muted)";
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-      <circle cx="10" cy="10" r="2.2" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" />
-      <path d="M10 3.5v1.6M10 14.9v1.6M3.5 10h1.6M14.9 10h1.6M5.4 5.4l1.1 1.1M13.5 13.5l1.1 1.1M14.6 5.4l-1.1 1.1M6.5 13.5l-1.1 1.1" stroke="var(--color-on-ink-muted)" strokeWidth="1.6" strokeLinecap="round" />
+      <rect x="3" y="5.5" width="14" height="11" rx="2" stroke={stroke} strokeWidth="1.6" />
+      <path d="M7 5.5l1.2-2h3.6L13 5.5" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="10" cy="11" r="2.4" stroke={stroke} strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function SettingsIcon({ active }: { active: boolean }) {
+  const stroke = active ? "var(--color-accent)" : "var(--color-on-ink-muted)";
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+      <circle cx="10" cy="10" r="2.2" stroke={stroke} strokeWidth="1.6" />
+      <path d="M10 3.5v1.6M10 14.9v1.6M3.5 10h1.6M14.9 10h1.6M5.4 5.4l1.1 1.1M13.5 13.5l1.1 1.1M14.6 5.4l-1.1 1.1M6.5 13.5l-1.1 1.1" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Início", icon: null },
-  { href: "/dashboard/turmas", label: "Turmas", icon: <ClassesIcon /> },
-  { href: "/dashboard/chamadas", label: "Chamadas", icon: <AttendanceIcon /> },
-  { href: "/dashboard/alunos", label: "Alunos", icon: <StudentsIcon /> },
-  { href: "/dashboard/relatorios", label: "Relatórios", icon: <ReportsIcon /> },
-  { href: "/dashboard/evidencias", label: "Evidências", icon: <EvidencesIcon /> },
-  { href: "/dashboard/configuracoes", label: "Configurações", icon: <SettingsIcon /> },
+  { href: "/dashboard", label: "Início", icon: (active) => <HomeIcon active={active} />, exact: true },
+  { href: "/dashboard/turmas", label: "Turmas", icon: (active) => <ClassesIcon active={active} /> },
+  { href: "/dashboard/chamadas", label: "Chamadas", icon: (active) => <AttendanceIcon active={active} /> },
+  { href: "/dashboard/salas", label: "Salas", icon: (active) => <RoomsIcon active={active} /> },
+  { href: "/dashboard/alunos", label: "Alunos", icon: (active) => <StudentsIcon active={active} /> },
+  { href: "/dashboard/relatorios", label: "Relatórios", icon: (active) => <ReportsIcon active={active} /> },
+  { href: "/dashboard/evidencias", label: "Evidências", icon: (active) => <EvidencesIcon active={active} /> },
+  { href: "/dashboard/configuracoes", label: "Configurações", icon: (active) => <SettingsIcon active={active} /> },
 ];
 
 export function DashboardSidebar() {
   const pathname = usePathname();
-  const isHome = pathname === "/dashboard";
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col justify-between bg-ink px-[18px] pb-5 pt-7">
@@ -116,27 +138,11 @@ export function DashboardSidebar() {
 
         {/* Nav */}
         <nav className="flex flex-col gap-1" aria-label="Navegação principal">
-          {/* Home — rendered separately to pass active prop to its icon */}
-          <Link
-            href="/dashboard"
-            className={`flex h-11 w-full items-center gap-3 rounded-md px-3 transition-colors duration-150 ${
-              isHome
-                ? "bg-on-ink-border"
-                : "hover:bg-on-ink-border/50"
-            }`}
-          >
-            <HomeIcon active={isHome} />
-            <span
-              className={`text-body/body font-semibold ${
-                isHome ? "text-accent" : "text-on-ink-muted font-medium"
-              }`}
-            >
-              Início
-            </span>
-          </Link>
+          {navItems.map((item) => {
+            const active = item.exact
+              ? pathname === item.href
+              : pathname.startsWith(item.href);
 
-          {navItems.slice(1).map((item) => {
-            const active = pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
@@ -145,10 +151,12 @@ export function DashboardSidebar() {
                   active ? "bg-on-ink-border" : "hover:bg-on-ink-border/50"
                 }`}
               >
-                {item.icon}
+                {item.icon(active)}
                 <span
                   className={`text-body/body ${
-                    active ? "font-semibold text-on-ink" : "font-medium text-on-ink-muted"
+                    active
+                      ? "font-semibold text-accent"
+                      : "font-medium text-on-ink-muted"
                   }`}
                 >
                   {item.label}

@@ -5,3 +5,5 @@ export * from "./dashboard";
 export * from "./subject-classes";
 export * from "./attendance";
 export * from "./user";
+export * from "./rooms";
+export * from "./reports";
