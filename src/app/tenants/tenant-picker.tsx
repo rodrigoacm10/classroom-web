@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ApiError,
@@ -35,7 +36,7 @@ export function TenantPicker() {
         if (!isMounted) return;
         const active = fetched.filter((t) => t.active && !t.deleted);
         if (active.length === 0) {
-          router.replace("/login");
+          router.replace("/tenants/nova");
           return;
         }
         if (active.length === 1) {
@@ -162,6 +163,28 @@ export function TenantPicker() {
         );
       })}
 
+      {/* Option to create a new institution */}
+      <div className="mt-2 flex flex-col items-start gap-2 rounded-sm border border-dashed border-control-border bg-paper p-5">
+        <div className="flex flex-col gap-1">
+          <span className="font-bold text-label/caption text-ink">
+            Precisa cadastrar outra instituição?
+          </span>
+          <span className="text-caption/caption text-muted">
+            Cadastre um novo campus ou faculdade e torne-se o administrador.
+          </span>
+        </div>
+        <Link
+          href="/tenants/nova"
+          className={buttonClass({
+            variant: "outline",
+            size: "md",
+            className: "mt-2",
+          })}
+        >
+          + Criar nova instituição
+        </Link>
+      </div>
+
       {/* Feedback area */}
       <div aria-live="polite" className="mt-1">
         {error ? (
@@ -178,7 +201,7 @@ export function TenantPicker() {
       </div>
 
       {/* Back to login */}
-      <a
+      <Link
         href="/login"
         className={buttonClass({
           variant: "outline",
@@ -187,7 +210,7 @@ export function TenantPicker() {
         })}
       >
         Voltar ao login
-      </a>
+      </Link>
     </div>
   );
 }
