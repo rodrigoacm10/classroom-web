@@ -90,7 +90,7 @@ export function ClassRow({ item }: { item: ClassItem }) {
   if (isLive && item.activeSessionId) {
     return (
       <Link
-        href={`/turmas/${item.id}/chamadas/${item.activeSessionId}`}
+        href={`/dashboard/chamadas/${item.id}/${item.activeSessionId}`}
         className="block"
         title="Chamada aberta agora — Clique para acompanhar"
       >
