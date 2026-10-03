@@ -134,10 +134,82 @@ export async function listTenantMembers(
   return api<TenantMembersPageResponse>(`/tenants/${tenantId}/members${qs}`);
 }
 
+export type InviteStatusResponse = {
+  id: string;
+  tenant_id: string;
+  tenant_name: string;
+  email: string;
+  role: "admin" | "professor" | "aluno" | "coordenador";
+  token: string;
+  status: "pending" | "accepted" | "expired" | "revoked";
+  expires_at: string;
+  created_at: string;
+};
+
+/**
+ * Consulta os detalhes de um convite a partir do token (Endpoint público).
+ */
+export async function getInvite(token: string): Promise<InviteStatusResponse> {
+  return api<InviteStatusResponse>(`/invites/${token}`, {
+    skipAuthRefresh: true,
+  });
+}
+
+/**
+ * Aceita um convite para ingressar em uma instituição.
+ * Requer autenticação do usuário.
+ */
+export async function acceptInvite(
+  token: string,
+  authToken?: string,
+): Promise<TenantMemberResponse> {
+  const tokenToUse = authToken ?? getStoredToken();
+  return api<TenantMemberResponse>(`/invites/${token}/accept`, {
+    method: "POST",
+    headers: tokenToUse ? { Authorization: `Bearer ${tokenToUse}` } : {},
+    skipAuthRefresh: true,
+  });
+}
+
+export type CreateTenantData = {
+  name: string;
+  slug: string;
+};
+
+export type TenantResponse = {
+  id: string;
+  name: string;
+  slug: string;
+  active: boolean;
+  deleted: boolean;
+  created_at: string;
+};
+
+/**
+ * Cria uma nova Tenant/Instituição (/tenants/).
+ * Requer autenticação. O criador torna-se automaticamente ADMIN dela.
+ */
+export async function createTenant(
+  data: CreateTenantData,
+  token?: string,
+): Promise<TenantResponse> {
+  const tokenToUse = token ?? getStoredToken();
+  return api<TenantResponse>("/tenants/", {
+    method: "POST",
+    body: data,
+    headers: tokenToUse ? { Authorization: `Bearer ${tokenToUse}` } : {},
+  });
+}
+
 export const tenantService = {
   listMyTenants,
   switchTenant,
   listStudents,
   listTenantMembers,
+  getInvite,
+  acceptInvite,
+  createTenant,
 };
+
+
 

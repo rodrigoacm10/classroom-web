@@ -44,10 +44,8 @@ export function LoginForm() {
       const activeTenants = tenants.filter((t) => t.active && !t.deleted);
 
       if (activeTenants.length === 0) {
-        setError(
-          "Sua conta não está vinculada a nenhuma instituição ativa. Verifique com a coordenação.",
-        );
-        setPending(false);
+        // Usuário não possui nenhuma instituição vinculada: redireciona para criar a instituição
+        router.push("/tenants/nova");
         return;
       }
 
