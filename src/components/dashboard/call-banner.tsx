@@ -9,6 +9,7 @@ export function LiveCallBanner({ session }: { session: ActiveAttendanceSessionRe
   const [remaining, setRemaining] = useState(() => formatRemaining(session.expires_at));
 
   useEffect(() => {
+    setRemaining(formatRemaining(session.expires_at));
     const interval = setInterval(() => {
       setRemaining(formatRemaining(session.expires_at));
     }, 1000);
@@ -51,13 +52,13 @@ export function LiveCallBanner({ session }: { session: ActiveAttendanceSessionRe
           <span className="font-medium text-ink text-caption/caption">Presentes</span>
         </div>
         <div className="flex flex-col">
-          <span className="font-semibold text-ink text-[22px] leading-7 font-mono">
+          <span suppressHydrationWarning className="font-semibold text-ink text-[22px] leading-7 font-mono">
             {remaining}
           </span>
           <span className="font-medium text-ink text-caption/caption">Restantes</span>
         </div>
         <Link
-          href={`/turmas/${session.subject_class_id}/chamadas/${session.session_id}`}
+          href={`/dashboard/chamadas/${session.subject_class_id}/${session.session_id}`}
           className="flex h-9 items-center rounded-lg bg-ink px-[14px] font-bold text-paper text-label/caption transition-opacity hover:opacity-80"
         >
           Acompanhar
