@@ -12,12 +12,16 @@ import {
   type SubjectClassItem,
 } from "@/lib/api";
 
-import { LiveCallBanner, NoActiveCallBanner, CallBannerSkeleton } from "./call-banner";
-import { StatCard } from "./stat-card";
-import { ClassList } from "./class-list";
-import { WeekFrequencyChart } from "./week-frequency-chart";
-import { AtRiskList } from "./at-risk-list";
-import { toClassItem, toAtRiskStudent } from "./dashboard.mappers";
+import {
+  LiveCallBanner,
+  NoActiveCallBanner,
+  CallBannerSkeleton,
+  StatCard,
+  ClassList,
+  WeekFrequencyChart,
+  AtRiskList,
+} from "../components";
+import { toClassItem, toAtRiskStudent } from "../mappers";
 import {
   greeting,
   formattedDate,

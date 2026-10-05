@@ -1,4 +1,4 @@
-import type { AtRiskStudent } from "./dashboard.types";
+import type { AtRiskStudent } from "../types";
 import { getInitials } from "@/lib/utils";
 
 export { getInitials };

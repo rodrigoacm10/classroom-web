@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ClassItem } from "./dashboard.types";
+import type { ClassItem } from "../types";
 import { ClassRow } from "./class-row";
 
 export interface ClassListProps {

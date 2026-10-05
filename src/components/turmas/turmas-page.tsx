@@ -16,7 +16,7 @@ import {
   LiveCallBanner,
   NoActiveCallBanner,
   CallBannerSkeleton,
-} from "@/components/dashboard/call-banner";
+} from "@/modules/dashboard";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 

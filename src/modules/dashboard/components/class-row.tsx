@@ -1,16 +1,13 @@
 import Link from "next/link";
-import type { ClassItem, ClassStatus } from "./dashboard.types";
+import type { ClassItem, ClassStatus } from "../types";
+import { attendanceColor, attendanceBarColor } from "@/lib/utils";
+
+export { attendanceColor, attendanceBarColor };
 
 export function statusLabel(status: ClassStatus): string {
   const map: Record<string, string> = {
     live: "AO VIVO",
     alert: "ALERTA",
-    // Os status baseados em horários/agenda da turma foram comentados
-    // pois a rota /subject-classes não retorna horários de aula atualmente:
-    // today: "HOJE 10H",
-    // tonight: "NOITE",
-    // tomorrow: "AMANHÃ",
-    // wednesday: "QUARTA",
   };
   return map[status] ?? "";
 }
@@ -20,10 +17,6 @@ export function statusBadgeClass(status: ClassStatus): string {
   if (status === "alert") return "bg-danger-surface text-danger font-bold";
   return "bg-surface text-muted font-semibold";
 }
-
-import { attendanceColor, attendanceBarColor } from "@/lib/utils";
-
-export { attendanceColor, attendanceBarColor };
 
 export function accentBarColor(color: ClassItem["accentColor"]): string {
   if (color === "accent") return "bg-accent";
