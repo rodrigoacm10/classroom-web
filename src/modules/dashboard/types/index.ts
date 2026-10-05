@@ -25,3 +25,12 @@ export type AtRiskStudent = {
   /** true = danger zone (<= 71%), false = warning zone (72–74%) */
   critical: boolean;
 };
+
+export type DashboardStatsData = {
+  totalClasses: string;
+  totalStudents: string;
+  averageAttendance: string;
+  averageAttendanceClass: string;
+  totalAtRisk: string;
+  atRiskClass: string;
+};
