@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { AttendanceRecord } from "../types";
+import type { AttendanceRecord } from "../../types";
 import { StatusBadge } from "./table";
 
 export interface ChamadaDetailModalProps {

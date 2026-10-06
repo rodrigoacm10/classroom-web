@@ -31,3 +31,6 @@ export type AttendanceTab = "realizadas" | "em_andamento";
 export type AttendanceSort = "recent" | "oldest";
 export type AttendancePeriod = "1" | "7" | "15" | "30" | "all";
 export type AttendanceStatusFilter = "all" | "closed" | "cancelled";
+
+export const DURATION_OPTIONS = [10, 15, 30] as const;
+export type Duration = (typeof DURATION_OPTIONS)[number];

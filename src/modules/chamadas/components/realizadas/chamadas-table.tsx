@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import type { AttendanceRecord, AttendanceTab } from "../types";
+import type { AttendanceRecord, AttendanceTab } from "../../types";
 import {
   Table,
   TableHeader,

@@ -4,7 +4,7 @@ import type {
   AttendanceStatusFilter,
   AttendancePeriod,
   AttendanceSort,
-} from "../types";
+} from "../../types";
 
 export interface ChamadasFiltersProps {
   activeTab: AttendanceTab;

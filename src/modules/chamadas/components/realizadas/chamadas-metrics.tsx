@@ -1,6 +1,6 @@
 import type { AttendanceMetricsResponse } from "@/services/attendance";
 import { formatShortDate, formatHourBadge } from "@/lib/utils";
-import type { AttendancePeriod } from "../types";
+import type { AttendancePeriod } from "../../types";
 
 export interface ChamadasMetricsProps {
   metrics: AttendanceMetricsResponse | null;

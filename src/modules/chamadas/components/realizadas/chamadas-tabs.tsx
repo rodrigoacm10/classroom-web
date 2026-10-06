@@ -1,4 +1,4 @@
-import type { AttendanceTab } from "../types";
+import type { AttendanceTab } from "../../types";
 
 export interface ChamadasTabsProps {
   activeTab: AttendanceTab;

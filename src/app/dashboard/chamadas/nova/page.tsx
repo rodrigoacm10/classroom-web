@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { NovaChamada } from "@/components/chamadas/nova-chamada";
+import { NovaChamada } from "@/modules/chamadas";
 
 export const metadata: Metadata = {
   title: "Nova Chamada — Locus",
