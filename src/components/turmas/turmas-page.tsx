@@ -12,11 +12,7 @@ import {
   type ActiveAttendanceSessionResponse,
 } from "@/lib/api";
 import { attendanceColor, attendanceBarColor } from "@/lib/utils";
-import {
-  LiveCallBanner,
-  NoActiveCallBanner,
-  CallBannerSkeleton,
-} from "@/modules/dashboard";
+import { CallBanner } from "@/components/global";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -320,14 +316,8 @@ export function TurmasPage() {
         </div>
       </div>
 
-      {/* ─── Banner de chamada em tempo real (Padrão Locus) ─────────────────── */}
-      {sessionLoading ? (
-        <CallBannerSkeleton />
-      ) : activeSession ? (
-        <LiveCallBanner key={activeSession.session_id} session={activeSession} />
-      ) : (
-        <NoActiveCallBanner />
-      )}
+      {/* ─── Banner de chamada em tempo real (Global Auto-suficiente) ─────── */}
+      <CallBanner />
 
       {/* ─── 4 Summary KPI Indicator Columns ───────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 border-b border-border bg-white px-8 lg:px-10">

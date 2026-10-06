@@ -4,34 +4,34 @@ import { useEffect, useState, useCallback } from "react";
 import {
   getDashboardMetrics,
   listSubjectClasses,
-  listActiveAttendanceSessions,
   getMyProfile,
   type DashboardMetricsResponse,
-  type ActiveAttendanceSessionResponse,
   type SubjectClassItem,
 } from "@/lib/api";
 import { attendanceColor } from "@/lib/utils";
+import { useActiveCall } from "@/hooks";
 import { toClassItem, toAtRiskStudent } from "../mappers";
 import type { DashboardStatsData } from "../types";
 
 export function useDashboard() {
   const [metrics, setMetrics] = useState<DashboardMetricsResponse | null>(null);
   const [subjectClasses, setSubjectClasses] = useState<SubjectClassItem[]>([]);
-  const [activeSessions, setActiveSessions] = useState<ActiveAttendanceSessionResponse[]>([]);
   const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Hook global de sessão ativa
+  const { activeSession, loading: activeLoading, reload: reloadActive } = useActiveCall();
 
   const loadDashboardData = useCallback(async (isMounted: () => boolean) => {
     try {
       setLoading(true);
       setError(null);
 
-      const [metricsResult, classesResult, sessionsResult, profileResult] =
+      const [metricsResult, classesResult, profileResult] =
         await Promise.allSettled([
           getDashboardMetrics({ active: true }),
           listSubjectClasses({ active: true, page_size: 20 }),
-          listActiveAttendanceSessions(),
           getMyProfile(),
         ]);
 
@@ -43,10 +43,6 @@ export function useDashboard() {
 
       if (classesResult.status === "fulfilled") {
         setSubjectClasses(classesResult.value.items);
-      }
-
-      if (sessionsResult.status === "fulfilled") {
-        setActiveSessions(sessionsResult.value);
       }
 
       if (profileResult.status === "fulfilled") {
@@ -86,7 +82,6 @@ export function useDashboard() {
   // Transformação via mappers puros
   const atRiskStudents = (metrics?.at_risk_students ?? []).map(toAtRiskStudent);
   const classes = subjectClasses.map(toClassItem);
-  const activeSession = activeSessions.length > 0 ? activeSessions[0] : null;
   const weekFrequency = metrics?.week_frequency ?? [];
 
   // Cálculos e formatação de estatísticas derivadas

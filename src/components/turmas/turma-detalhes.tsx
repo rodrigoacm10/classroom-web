@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { attendanceColor, attendanceBarColor } from "@/lib/utils";
-import { LiveCallBanner } from "@/modules/dashboard";
+import { LiveCallBanner } from "@/components/global";
 import {
   getSubjectClass,
   enrollStudent,

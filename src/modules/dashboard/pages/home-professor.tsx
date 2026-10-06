@@ -4,9 +4,7 @@ import { useDashboard } from "../hooks";
 import {
   DashboardHeader,
   DashboardStats,
-  LiveCallBanner,
-  NoActiveCallBanner,
-  CallBannerSkeleton,
+  CallBanner,
   ClassList,
   WeekFrequencyChart,
   AtRiskList,
@@ -19,7 +17,6 @@ export function HomeProfessor() {
     classes,
     atRiskStudents,
     weekFrequency,
-    activeSession,
     loading,
     error,
   } = useDashboard();
@@ -29,14 +26,8 @@ export function HomeProfessor() {
       {/* Header */}
       <DashboardHeader userName={userName} />
 
-      {/* Banner de chamada em tempo real */}
-      {loading && !activeSession ? (
-        <CallBannerSkeleton />
-      ) : activeSession ? (
-        <LiveCallBanner key={activeSession.session_id} session={activeSession} />
-      ) : (
-        <NoActiveCallBanner />
-      )}
+      {/* Banner de chamada em tempo real (Auto-suficiente) */}
+      <CallBanner />
 
       {/* Notificação de erro geral */}
       {error ? (

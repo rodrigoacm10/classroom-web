@@ -1,348 +1,43 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React from "react";
 import Link from "next/link";
-import {
-  listActiveAttendanceSessions,
-  listTenantAttendanceSessions,
-  getAttendanceMetrics,
-  type ActiveAttendanceSessionResponse,
-  type AttendanceMetricsResponse,
-  type AttendanceSessionResponse,
-} from "@/services/attendance";
-import { listSubjectClasses, type SubjectClassItem } from "@/services/subject-classes";
+import { formatShortDate, formatHourBadge, formattedDate } from "@/lib/utils";
+import { CallBanner } from "@/components/global";
+import { useChamadasRealizadas } from "../hooks";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export type AttendanceRecord = {
-  id: string;
-  discipline: string;
-  classCode: string;
-  room: string;
-  timeBadge: string;
-  dateLabel: string;
-  timeRange: string;
-  duration: string;
-  present: number;
-  total: number;
-  rate: number;
-  status: "ENCERRADA" | "EXPIRADA" | "CANCELADA" | "ABERTA" | "EM ANDAMENTO";
-  dayCode?: string;
-  notes?: string;
-  subjectClassId?: string;
-};
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getFormattedDateSubtitle(): string {
-  const now = new Date();
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  };
-  return now.toLocaleDateString("pt-BR", options).toUpperCase();
-}
-
-function formatShortDate(isoDate: string): string {
-  try {
-    const d = new Date(isoDate);
-    const now = new Date();
-    if (d.toDateString() === now.toDateString()) {
-      return "Hoje";
-    }
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    if (d.toDateString() === yesterday.toDateString()) {
-      return "Ontem";
-    }
-    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
-  } catch {
-    return "Hoje";
-  }
-}
-
-function formatHourBadge(isoDate: string): string {
-  try {
-    const d = new Date(isoDate);
-    return `${d.getHours()}h`;
-  } catch {
-    return "19h";
-  }
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
+// Reexporta os tipos para compatibilidade
+export type { AttendanceRecord } from "../types";
 
 export function ChamadasRealizadas() {
-  const [activeTab, setActiveTab] = useState<"realizadas" | "em_andamento">("realizadas");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedClass, setSelectedClass] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedPeriod, setSelectedPeriod] = useState("30days");
-  const [selectedSort, setSelectedSort] = useState<"recent" | "oldest" | "presence">("recent");
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 7;
-
-  // Selected call for details modal
-  const [selectedCall, setSelectedCall] = useState<AttendanceRecord | null>(null);
-
-  // Live active call session
-  const [activeSession, setActiveSession] = useState<ActiveAttendanceSessionResponse | null>(null);
-  const [loadingActive, setLoadingActive] = useState(true);
-  const [remainingTime, setRemainingTime] = useState("08:12");
-
-  // Real metrics from API
-  const [metrics, setMetrics] = useState<AttendanceMetricsResponse | null>(null);
-  const [loadingMetrics, setLoadingMetrics] = useState(true);
-
-  // Real subject classes for filter
-  const [subjectClasses, setSubjectClasses] = useState<SubjectClassItem[]>([]);
-
-  // Real sessions from API
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [totalItems, setTotalItems] = useState(0);
-  const [loadingSessions, setLoadingSessions] = useState(true);
-
-  // Debounced search for API query
-  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 300);
-    return () => clearTimeout(handler);
-  }, [searchQuery]);
-
-  // Fetch subject classes from API
-  useEffect(() => {
-    let cancelled = false;
-    async function loadClasses() {
-      try {
-        const res = await listSubjectClasses({ page_size: 50, active: true });
-        if (!cancelled && res?.items) {
-          setSubjectClasses(res.items);
-        }
-      } catch {
-        // Fallback
-      }
-    }
-    loadClasses();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Fetch active session from API
-  const loadActive = async () => {
-    try {
-      setLoadingActive(true);
-      const sessions = await listActiveAttendanceSessions();
-      if (sessions && sessions.length > 0) {
-        setActiveSession(sessions[0]);
-      } else {
-        setActiveSession(null);
-      }
-    } catch {
-      setActiveSession(null);
-    } finally {
-      setLoadingActive(false);
-    }
-  };
-
-  useEffect(() => {
-    loadActive();
-  }, []);
-
-  // Fetch metrics from API (last 30 days or selected period)
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadMetrics() {
-      try {
-        setLoadingMetrics(true);
-        const days = selectedPeriod === "semester" ? 180 : selectedPeriod === "all" ? 365 : 30;
-        const data = await getAttendanceMetrics(days);
-        if (!cancelled && data) {
-          setMetrics(data);
-        }
-      } catch {
-        // Fallback
-      } finally {
-        if (!cancelled) {
-          setLoadingMetrics(false);
-        }
-      }
-    }
-
-    loadMetrics();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedPeriod]);
-
-  // Fetch sessions from tenant API
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadSessions() {
-      try {
-        setLoadingSessions(true);
-        const params: any = {
-          page: currentPage,
-          page_size: pageSize,
-        };
-
-        if (activeTab === "em_andamento") {
-          params.status = "open";
-        } else {
-          // Tab "realizadas"
-          if (selectedStatus !== "all") {
-            params.status = selectedStatus.toLowerCase();
-          } else {
-            params.exclude_status = "open";
-          }
-          if (selectedPeriod === "30days") {
-            const d = new Date();
-            d.setDate(d.getDate() - 30);
-            params.opened_after = d.toISOString();
-          } else if (selectedPeriod === "semester") {
-            const d = new Date();
-            d.setDate(d.getDate() - 180);
-            params.opened_after = d.toISOString();
-          }
-        }
-
-        if (selectedClass !== "all") {
-          params.subject_class_id = selectedClass;
-        }
-
-        if (debouncedSearch.trim()) {
-          params.search = debouncedSearch.trim();
-        }
-
-        const res = await listTenantAttendanceSessions(params);
-        if (!cancelled && res && res.items) {
-          let mapped: AttendanceRecord[] = res.items.map((s) => {
-            const openDate = new Date(s.opened_at);
-            const closeDate = s.closed_at ? new Date(s.closed_at) : null;
-            const openStr = openDate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-            const closeStr = closeDate
-              ? closeDate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
-              : s.status === "open"
-              ? "Aberta agora"
-              : `${s.duration_minutes} min`;
-
-            const statusUpper = s.status === "open" ? "ABERTA" : s.status.toUpperCase();
-
-            return {
-              id: s.id,
-              subjectClassId: s.subject_class_id,
-              discipline: s.subject_class?.discipline_name || s.subject_class?.name || "Disciplina",
-              classCode: s.subject_class?.name || "T01",
-              room: s.room?.name || "Sem sala",
-              timeBadge: `${openDate.getHours()}h`,
-              dateLabel: formatShortDate(s.opened_at),
-              timeRange: s.status === "open" ? `${openStr} · Aberta` : `${openStr} - ${closeStr}`,
-              duration: `${s.duration_minutes} min`,
-              present: s.confirmed_count,
-              total: s.total_students,
-              rate: s.total_students > 0 ? Math.round((s.confirmed_count / s.total_students) * 100) : 0,
-              status: statusUpper as any,
-              dayCode: s.day_code,
-              notes: s.status === "open" ? "Chamada em andamento no momento." : "Sessão registrada no sistema Locus.",
-            };
-          });
-
-          if (activeTab === "em_andamento" && mapped.length === 0 && activeSession) {
-            mapped = [
-              {
-                id: activeSession.session_id,
-                subjectClassId: activeSession.subject_class_id,
-                discipline: activeSession.discipline_name,
-                classCode: activeSession.subject_class_name,
-                room: activeSession.room_name ?? "Sem sala",
-                timeBadge: `${new Date(activeSession.opened_at).getHours()}h`,
-                dateLabel: "Hoje",
-                timeRange: `${new Date(activeSession.opened_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} · Aberta`,
-                duration: `${activeSession.duration_minutes} min`,
-                present: activeSession.present_count,
-                total: activeSession.total_students,
-                rate:
-                  activeSession.total_students > 0
-                    ? Math.round((activeSession.present_count / activeSession.total_students) * 100)
-                    : 0,
-                status: "ABERTA" as const,
-                dayCode: activeSession.day_code,
-                notes: "Chamada em andamento no momento.",
-              },
-            ];
-            setRecords(mapped);
-            setTotalItems(1);
-          } else {
-            setRecords(mapped);
-            setTotalItems(res.total);
-          }
-        } else if (!cancelled) {
-          setRecords([]);
-          setTotalItems(0);
-        }
-      } catch {
-        if (!cancelled) {
-          setRecords([]);
-          setTotalItems(0);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingSessions(false);
-        }
-      }
-    }
-
-    loadSessions();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentPage, pageSize, selectedStatus, debouncedSearch, selectedPeriod, activeTab, selectedClass, activeSession]);
-
-  // Countdown timer for active banner
-  useEffect(() => {
-    if (!activeSession?.expires_at) {
-      setRemainingTime("00:00");
-      return;
-    }
-
-    function updateCountdown() {
-      if (!activeSession?.expires_at) return;
-      const diffMs = new Date(activeSession.expires_at).getTime() - Date.now();
-      if (diffMs <= 0) {
-        setRemainingTime("00:00");
-        loadActive();
-      } else {
-        const totalSecs = Math.floor(diffMs / 1000);
-        const mins = Math.floor(totalSecs / 60);
-        const secs = totalSecs % 60;
-        setRemainingTime(`${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`);
-      }
-    }
-
-    updateCountdown();
-    const timer = setInterval(updateCountdown, 1000);
-    return () => clearInterval(timer);
-  }, [activeSession]);
-
-  // Sorted records
-  const sortedRecords = useMemo(() => {
-    let list = records.slice();
-    if (selectedSort === "oldest") {
-      list.reverse();
-    } else if (selectedSort === "presence") {
-      list.sort((a, b) => b.rate - a.rate);
-    }
-    return list;
-  }, [records, selectedSort]);
-
-  // Pagination calculation
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const currentClampedPage = Math.min(currentPage, totalPages);
+  const {
+    activeTab,
+    setActiveTab,
+    searchQuery,
+    setSearchQuery,
+    selectedClass,
+    setSelectedClass,
+    selectedStatus,
+    setSelectedStatus,
+    selectedPeriod,
+    setSelectedPeriod,
+    selectedSort,
+    setSelectedSort,
+    currentPage,
+    currentClampedPage,
+    setCurrentPage,
+    totalPages,
+    totalItems,
+    pageSize,
+    sortedRecords,
+    loadingSessions,
+    subjectClasses,
+    activeSession,
+    metrics,
+    loadingMetrics,
+    selectedCall,
+    setSelectedCall,
+  } = useChamadasRealizadas();
 
   return (
     <div className="flex min-h-full flex-col bg-paper antialiased font-sans">
@@ -350,7 +45,7 @@ export function ChamadasRealizadas() {
       <div className="flex items-center justify-between border-b border-border bg-white px-10 py-5">
         <div>
           <div className="mb-1 font-sans text-caption uppercase tracking-caps text-muted">
-            {getFormattedDateSubtitle()}
+            {formattedDate().toUpperCase()}
           </div>
           <h1 className="font-sans text-title font-bold text-ink leading-title">
             Chamadas
@@ -418,116 +113,8 @@ export function ChamadasRealizadas() {
         </button>
       </div>
 
-      {/* ─── Call Banner (Active vs Inactive vs Skeleton) ───────────────── */}
-      {loadingActive && !activeSession ? (
-        <div className="flex w-full items-center justify-between border-b border-border bg-surface/60 px-10 py-4 animate-pulse">
-          <div className="flex items-center gap-4">
-            <div className="h-2.5 w-2.5 rounded-full bg-border" />
-            <div className="flex flex-col gap-1.5">
-              <div className="h-3 w-28 rounded bg-border" />
-              <div className="h-4 w-64 rounded bg-border" />
-            </div>
-          </div>
-          <div className="h-9 w-32 rounded bg-border" />
-        </div>
-      ) : activeSession ? (
-        <div className="flex w-full items-center justify-between bg-accent px-10 py-4 transition-colors">
-          <div className="flex items-center gap-4">
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ink opacity-60" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-ink" />
-            </span>
-            <div className="flex flex-col gap-[2px]">
-              <span className="font-sans text-caption font-bold uppercase tracking-caps text-ink">
-                Chamada aberta agora
-              </span>
-              <span className="font-sans text-[16px] font-bold text-ink leading-body">
-                {activeSession.discipline_name} · {activeSession.subject_class_name} ·{" "}
-                {activeSession.room_name ?? "Sem sala"}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-7">
-            <div className="flex flex-col">
-              <span className="font-mono text-[22px] font-semibold tracking-code text-ink leading-[28px]">
-                {activeSession.day_code}
-              </span>
-              <span className="font-sans text-caption font-medium text-ink">
-                Código do dia
-              </span>
-            </div>
-
-            <div className="flex flex-col">
-              <span className="font-mono text-[22px] font-semibold tracking-code text-ink leading-[28px]">
-                {activeSession.present_count}/{activeSession.total_students}
-              </span>
-              <span className="font-sans text-caption font-medium text-ink">
-                Presentes
-              </span>
-            </div>
-
-            <div className="flex flex-col">
-              <span className="font-mono text-[22px] font-semibold tracking-code text-ink leading-[28px]">
-                {remainingTime}
-              </span>
-              <span className="font-sans text-caption font-medium text-ink">
-                Restantes
-              </span>
-            </div>
-
-            <Link
-              href={`/dashboard/chamadas/${activeSession.subject_class_id}/${activeSession.session_id}`}
-              className="flex h-[36px] items-center rounded-lg bg-ink px-[14px] font-sans text-label font-bold text-paper transition-opacity hover:opacity-85"
-            >
-              Acompanhar
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <div className="flex w-full items-center justify-between border-b border-border bg-surface px-10 py-4 transition-colors">
-          <div className="flex items-center gap-4">
-            {/* static indicator dot */}
-            <span className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
-              <span className="h-2 w-2 rounded-full bg-muted/40" />
-            </span>
-            <div className="flex flex-col gap-0.5">
-              <span className="font-sans text-caption font-bold uppercase tracking-caps text-muted">
-                Chamada em tempo real
-              </span>
-              <span className="font-sans text-[16px] font-semibold text-ink leading-body">
-                Nenhuma chamada em andamento no momento
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <span className="hidden font-sans text-label text-muted md:inline">
-              Inicie uma chamada em qualquer turma para acompanhar presenças ao vivo
-            </span>
-            <Link
-              href="/dashboard/chamadas/nova"
-              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-paper px-[14px] font-sans text-label font-semibold text-ink transition-colors hover:border-control-border hover:bg-surface"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M8 3v10M3 8h10"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
-              Iniciar chamada
-            </Link>
-          </div>
-        </div>
-      )}
+      {/* ─── Call Banner (Global Auto-suficiente) ────────────────────────── */}
+      <CallBanner />
 
       {/* ─── 4 Summary KPI Indicator Columns ───────────────────────────────── */}
       <div className="flex w-full border-b border-border bg-white px-10 pt-5 pb-4">

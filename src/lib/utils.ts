@@ -54,6 +54,39 @@ export function formatRemaining(expiresAt: string): string {
 }
 
 /**
+ * Retorna data curta relativa ("Hoje", "Ontem" ou "05 out").
+ */
+export function formatShortDate(isoDate: string): string {
+  try {
+    const d = new Date(isoDate);
+    const now = new Date();
+    if (d.toDateString() === now.toDateString()) {
+      return "Hoje";
+    }
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (d.toDateString() === yesterday.toDateString()) {
+      return "Ontem";
+    }
+    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+  } catch {
+    return "Hoje";
+  }
+}
+
+/**
+ * Retorna hora em formato de badge ("19h").
+ */
+export function formatHourBadge(isoDate: string): string {
+  try {
+    const d = new Date(isoDate);
+    return `${d.getHours()}h`;
+  } catch {
+    return "19h";
+  }
+}
+
+/**
  * Nomes completos dos dias da semana em português (0 = Domingo).
  */
 export const FULL_DAY_NAMES = [
