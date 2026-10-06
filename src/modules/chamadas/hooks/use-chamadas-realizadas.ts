@@ -22,7 +22,7 @@ export function useChamadasRealizadas() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState<AttendanceStatusFilter>("all");
-  const [selectedPeriod, setSelectedPeriod] = useState<AttendancePeriod>("30days");
+  const [selectedPeriod, setSelectedPeriod] = useState<AttendancePeriod>("30");
   const [selectedSort, setSelectedSort] = useState<AttendanceSort>("recent");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 7;
@@ -82,7 +82,7 @@ export function useChamadasRealizadas() {
     async function loadMetrics() {
       try {
         setLoadingMetrics(true);
-        const days = selectedPeriod === "semester" ? 180 : selectedPeriod === "all" ? 365 : 30;
+        const days = selectedPeriod === "all" ? 365 : Number(selectedPeriod);
         const data = await getAttendanceMetrics(days);
         if (!cancelled && data) {
           setMetrics(data);
@@ -112,23 +112,20 @@ export function useChamadasRealizadas() {
         const params: Record<string, unknown> = {
           page: currentPage,
           page_size: pageSize,
+          sort: selectedSort,
         };
 
         if (activeTab === "em_andamento") {
           params.status = "open";
         } else {
           if (selectedStatus !== "all") {
-            params.status = selectedStatus.toLowerCase();
+            params.status = selectedStatus;
           } else {
             params.exclude_status = "open";
           }
-          if (selectedPeriod === "30days") {
+          if (selectedPeriod !== "all") {
             const d = new Date();
-            d.setDate(d.getDate() - 30);
-            params.opened_after = d.toISOString();
-          } else if (selectedPeriod === "semester") {
-            const d = new Date();
-            d.setDate(d.getDate() - 180);
+            d.setDate(d.getDate() - Number(selectedPeriod));
             params.opened_after = d.toISOString();
           }
         }
@@ -179,23 +176,14 @@ export function useChamadasRealizadas() {
     selectedStatus,
     debouncedSearch,
     selectedPeriod,
+    selectedSort,
     activeTab,
     selectedClass,
     activeSession,
   ]);
 
-
-
-  // Ordenação dos registros
-  const sortedRecords = useMemo(() => {
-    const list = [...records];
-    if (selectedSort === "oldest") {
-      list.reverse();
-    } else if (selectedSort === "presence") {
-      list.sort((a, b) => b.rate - a.rate);
-    }
-    return list;
-  }, [records, selectedSort]);
+  // Registros já ordenados pela API no banco
+  const sortedRecords = records;
 
   // Cálculos de paginação
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -227,6 +215,11 @@ export function useChamadasRealizadas() {
     setCurrentPage(1);
   }, []);
 
+  const handleSortChange = useCallback((sort: AttendanceSort | string) => {
+    setSelectedSort(sort as AttendanceSort);
+    setCurrentPage(1);
+  }, []);
+
   return {
     // Filtros e busca
     activeTab,
@@ -245,7 +238,8 @@ export function useChamadasRealizadas() {
     setSelectedPeriod: handlePeriodChange,
     handlePeriodChange,
     selectedSort,
-    setSelectedSort,
+    setSelectedSort: handleSortChange,
+    handleSortChange,
 
     // Paginação
     currentPage: currentClampedPage,

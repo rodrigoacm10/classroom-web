@@ -18,9 +18,14 @@ export function toAttendanceRecord(session: AttendanceSessionResponse): Attendan
     ? "Aberta agora"
     : `${session.duration_minutes} min`;
 
-  const statusUpper = (
-    session.status === "open" ? "ABERTA" : session.status.toUpperCase()
-  ) as AttendanceCallStatus;
+  let mappedStatus: AttendanceCallStatus = "ENCERRADA";
+  if (session.status === "open") {
+    mappedStatus = "ABERTA";
+  } else if (session.status === "cancelled") {
+    mappedStatus = "CANCELADA";
+  } else {
+    mappedStatus = "ENCERRADA";
+  }
 
   return {
     id: session.id,
@@ -38,7 +43,7 @@ export function toAttendanceRecord(session: AttendanceSessionResponse): Attendan
       session.total_students > 0
         ? Math.round((session.confirmed_count / session.total_students) * 100)
         : 0,
-    status: statusUpper,
+    status: mappedStatus,
     dayCode: session.day_code,
     notes:
       session.status === "open"

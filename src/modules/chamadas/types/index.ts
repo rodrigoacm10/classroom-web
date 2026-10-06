@@ -28,6 +28,6 @@ export type AttendanceRecord = {
 };
 
 export type AttendanceTab = "realizadas" | "em_andamento";
-export type AttendanceSort = "recent" | "oldest" | "presence";
-export type AttendancePeriod = "30days" | "semester" | "all";
-export type AttendanceStatusFilter = "all" | "ENCERRADA" | "EXPIRADA" | "CANCELADA";
+export type AttendanceSort = "recent" | "oldest";
+export type AttendancePeriod = "1" | "7" | "15" | "30" | "all";
+export type AttendanceStatusFilter = "all" | "closed" | "cancelled";

@@ -1,6 +1,5 @@
 export * from "./dashboard-header";
 export * from "./dashboard-stats";
-export * from "./call-banner";
 export * from "./stat-card";
 export * from "./class-row";
 export * from "./class-list";

@@ -196,6 +196,7 @@ export type ListTenantAttendanceSessionsParams = {
   opened_after?: string;
   opened_before?: string;
   search?: string;
+  sort?: string;
   page?: number;
   page_size?: number;
 };
@@ -213,6 +214,7 @@ export async function listTenantAttendanceSessions(
   if (params.opened_after) query.set("opened_after", params.opened_after);
   if (params.opened_before) query.set("opened_before", params.opened_before);
   if (params.search) query.set("search", params.search);
+  if (params.sort) query.set("sort", params.sort);
   if (params.page !== undefined) query.set("page", String(params.page));
   if (params.page_size !== undefined) query.set("page_size", String(params.page_size));
 

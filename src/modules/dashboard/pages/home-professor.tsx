@@ -1,10 +1,10 @@
 "use client";
 
+import { CallBanner } from "@/components/global";
 import { useDashboard } from "../hooks";
 import {
   DashboardHeader,
   DashboardStats,
-  CallBanner,
   ClassList,
   WeekFrequencyChart,
   AtRiskList,
