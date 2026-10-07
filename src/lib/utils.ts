@@ -42,6 +42,22 @@ export function formattedDate(date: Date = new Date()): string {
 }
 
 /**
+ * Retorna data por extenso em maiúsculas para subtítulos/eyebrows (ex: "QUARTA-FEIRA, 7 DE OUTUBRO").
+ */
+export function formattedDateSubtitle(date: Date = new Date()): string {
+  return date
+    .toLocaleDateString("pt-BR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    })
+    .toUpperCase();
+}
+
+export const getFormattedDateSubtitle = formattedDateSubtitle;
+
+
+/**
  * Formata tempo restante até expiração em MM:SS (ex: "14:59").
  */
 export function formatRemaining(expiresAt: string): string {
