@@ -2,7 +2,7 @@
 
 import React from "react";
 import { SearchIcon, CloseIcon, ChevronDownIcon } from "@/components/icons";
-import type { TurmasStatusFilter, TurmasSortOption } from "../types";
+import type { TurmasStatusFilter, TurmasSortOption } from "../../types";
 
 export interface TurmasFiltersProps {
   searchQuery: string;

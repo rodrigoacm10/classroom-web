@@ -8,7 +8,7 @@ import {
   TurmasKpis,
   TurmasFilters,
   TurmasTable,
-} from "../components";
+} from "../components/turmas";
 
 export function TurmasPage() {
   const {

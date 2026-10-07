@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { SearchIcon, AttendanceIcon, PlusIcon } from "@/components/icons";
-import type { TurmasStatusFilter } from "../../types";
+import type { TurmasStatusFilter } from "../../../types";
 
 export interface TableEmptyProps {
   hasFilters: boolean;

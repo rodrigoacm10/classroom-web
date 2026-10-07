@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { SubjectClassItem } from "@/lib/api";
-import type { TurmasStatusFilter } from "../../types";
+import type { TurmasStatusFilter } from "../../../types";
 import { TableSkeleton } from "./table-skeleton";
 import { TableEmpty } from "./table-empty";
 import { TurmaRow } from "./turma-row";

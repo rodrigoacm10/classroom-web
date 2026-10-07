@@ -1,5 +1,5 @@
 import React from "react";
-import type { TurmasKpiData } from "../types";
+import type { TurmasKpiData } from "../../types";
 
 export interface TurmasKpisProps {
   kpis: TurmasKpiData;

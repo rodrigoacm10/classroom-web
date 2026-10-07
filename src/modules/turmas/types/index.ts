@@ -18,3 +18,17 @@ export interface TurmasKpiData {
   atRiskCount: number;
   liveCount: number;
 }
+
+export type StudentMode = "catalog" | "batch";
+
+export interface AvatarStyle {
+  bg: string;
+  text: string;
+  border: string;
+}
+
+export interface RadiusInfo {
+  label: string;
+  color: string;
+  bg: string;
+}
