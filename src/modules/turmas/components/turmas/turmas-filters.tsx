@@ -33,7 +33,7 @@ export function TurmasFilters({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar por turma, disciplina, professor ou sala..."
+            placeholder="Buscar por turma ou disciplina..."
             className="h-10 w-full rounded-lg border border-border bg-white pl-9 pr-8 font-sans text-body text-ink placeholder:text-muted focus:border-control-border focus:outline-none"
           />
           {searchQuery && (
@@ -74,8 +74,7 @@ export function TurmasFilters({
           className="h-10 cursor-pointer appearance-none rounded-lg border border-border bg-white pl-3.5 pr-8 font-sans text-label font-medium text-ink focus:border-control-border focus:outline-none"
         >
           <option value="name_asc">Ordenar: Nome (A-Z)</option>
-          <option value="rate_desc">Maior Frequência</option>
-          <option value="rate_asc">Menor Frequência (Em risco)</option>
+          <option value="name_desc">Nome (Z-A)</option>
           <option value="students_desc">Mais Alunos</option>
         </select>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-muted">

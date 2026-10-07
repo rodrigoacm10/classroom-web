@@ -105,12 +105,9 @@ export function useTurmas(options: UseTurmasOptions = {}) {
       if (sortOption === "name_asc") {
         sortByParam = "name";
         orderParam = "asc";
-      } else if (sortOption === "rate_desc") {
-        sortByParam = "attendance_rate";
+      } else if (sortOption === "name_desc") {
+        sortByParam = "name";
         orderParam = "desc";
-      } else if (sortOption === "rate_asc") {
-        sortByParam = "attendance_rate";
-        orderParam = "asc";
       } else if (sortOption === "students_desc") {
         sortByParam = "student_count";
         orderParam = "desc";

@@ -6,8 +6,7 @@ export type TurmasStatusFilter = "all" | "active" | "inactive" | "live";
 
 export type TurmasSortOption =
   | "name_asc"
-  | "rate_desc"
-  | "rate_asc"
+  | "name_desc"
   | "students_desc";
 
 export interface TurmasKpiData {
