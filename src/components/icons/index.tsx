@@ -223,3 +223,24 @@ export function RadiusIcon({ className = "" }: IconProps) {
     </svg>
   );
 }
+
+export function FilterIcon({ className = "" }: IconProps) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${className}`}
+    >
+      <path
+        d="M2 4h12M4 8h8M6 12h4"
+        stroke="var(--color-muted)"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+

@@ -111,7 +111,57 @@ export function formatDayTooltipDate(dateStr: string): string {
   return dateStr;
 }
 
+/**
+ * Formata horário completo no padrão pt-BR (ex: "19:30:15").
+ */
+export function formatTime(isoDate: string): string {
+  try {
+    const d = new Date(isoDate);
+    return d.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Formata contador regressivo em segundos no padrão MM:SS (ex: 90 -> "01:30").
+ */
+export function formatCountdown(seconds: number): string {
+  if (seconds <= 0) return "00:00";
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+/**
+ * Formata data e hora resumida no padrão pt-BR (ex: "06 out, 19:30").
+ */
+export function formatDateTime(isoDate: string): string {
+  try {
+    return new Date(isoDate).toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
+
 // ─── Apresentação de Presença e Métricas ──────────────────────────────────────
+
+/**
+ * Formata distância em metros (ex: 12.4 -> "12 m", null -> "—").
+ */
+export function formatDistance(meters: number | null | undefined): string {
+  if (meters === null || meters === undefined) return "—";
+  return `${Math.round(meters)} m`;
+}
 
 /**
  * Retorna classe de cor de texto com base no percentual de presença.
@@ -131,3 +181,4 @@ export function attendanceBarColor(pct: number): string {
   if (pct >= 75) return "bg-warn";
   return "bg-danger";
 }
+

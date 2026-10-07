@@ -34,3 +34,6 @@ export type AttendanceStatusFilter = "all" | "closed" | "cancelled";
 
 export const DURATION_OPTIONS = [10, 15, 30] as const;
 export type Duration = (typeof DURATION_OPTIONS)[number];
+
+export type LiveFilterTab = "all" | "present" | "not_confirmed" | "out_of_radius";
+
