@@ -198,3 +198,33 @@ export function attendanceBarColor(pct: number): string {
   return "bg-danger";
 }
 
+/**
+ * Formata data da sessão de chamada (ex: "Hoje, 07 de outubro" ou "Segunda-feira, 05 de outubro").
+ */
+export function formatSessionDate(openedAt: string): string {
+  try {
+    const date = new Date(openedAt);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const dayMonth = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long" }).format(date);
+    if (isToday) return `Hoje, ${dayMonth}`;
+    const weekday = new Intl.DateTimeFormat("pt-BR", { weekday: "long" }).format(date);
+    return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dayMonth}`;
+  } catch {
+    return openedAt;
+  }
+}
+
+/**
+ * Formata intervalo de horários de uma sessão (ex: "19:00 - 19:15").
+ */
+export function formatSessionTimeRange(openedAt: string, expiresAt: string): string {
+  try {
+    const start = new Date(openedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const end = new Date(expiresAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    return `${start} - ${end}`;
+  } catch {
+    return "";
+  }
+}
+

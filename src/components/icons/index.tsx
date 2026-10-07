@@ -141,20 +141,20 @@ export function LocationIcon({ className = "" }: IconProps) {
   );
 }
 
-export function ClockIcon({ className = "" }: IconProps) {
+export function ClockIcon({ className = "", size = 14 }: IconProps) {
   return (
     <svg
-      width="14"
-      height="14"
+      width={size}
+      height={size}
       viewBox="0 0 14 14"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`shrink-0 ${className}`}
     >
-      <circle cx="7" cy="7" r="5.5" stroke="var(--color-on-ink-subtle)" strokeWidth="1.3" />
+      <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3" />
       <path
         d="M7 4v3l2 1.2"
-        stroke="var(--color-on-ink-subtle)"
+        stroke="currentColor"
         strokeWidth="1.3"
         strokeLinecap="round"
       />
@@ -440,6 +440,28 @@ export function ExternalLinkIcon({ className = "", size = 13 }: IconProps) {
         strokeWidth="1.3"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function GpsTargetIcon({ className = "", size = 14 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 14 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${className}`}
+    >
+      <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="7" cy="7" r="1.5" fill="currentColor" />
+      <path
+        d="M7 1v2M7 11v2M1 7h2M11 7h2"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
       />
     </svg>
   );

@@ -9,6 +9,10 @@ export type TurmasSortOption =
   | "name_desc"
   | "students_desc";
 
+export type TurmaDetalhesTab = "students" | "sessions" | "settings";
+
+export type StudentFilter = "all" | "regular" | "at_risk";
+
 export interface TurmasKpiData {
   totalClasses: number;
   activeClasses: number;
