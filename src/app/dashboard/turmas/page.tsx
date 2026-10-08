@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { TurmasPage } from "@/components/turmas/turmas-page";
+import { TurmasPage } from "@/modules/turmas";
 
 export const metadata: Metadata = {
   title: "Turmas — Locus",

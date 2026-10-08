@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { TurmaDetalhes } from "@/components/turmas/turma-detalhes";
+import { TurmaDetalhes } from "@/modules/turmas";
 
 export const metadata: Metadata = {
   title: "Detalhes da Turma — Locus",

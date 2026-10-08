@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ChamadasRealizadas } from "@/components/chamadas/chamadas-realizadas";
+import { ChamadasRealizadas } from "@/modules/chamadas";
 
 export const metadata: Metadata = {
   title: "Chamadas Realizadas — Locus",

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { HomeProfessor } from "@/components/dashboard/home-professor";
+import { HomeProfessor } from "@/modules/dashboard";
 
 export const metadata: Metadata = {
   title: "Início — Locus",

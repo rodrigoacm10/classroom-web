@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { NovaTurma } from "@/components/turmas/nova-turma";
+import { NovaTurma } from "@/modules/turmas";
 
 export const metadata: Metadata = {
   title: "Nova Turma — Locus",
