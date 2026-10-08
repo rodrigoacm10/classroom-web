@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createRoom } from "@/services/rooms";
+import { createRoom, updateRoom, getRoom, type Room } from "@/services/rooms";
 import { getRadiusLabel, getGoogleMapsUrl } from "@/lib/utils";
 import {
   RADIUS_PRESETS,
@@ -10,8 +10,18 @@ import {
   ROOM_NAME_SUGGESTIONS,
 } from "../types";
 
-export function useNovaSala() {
+export interface UseNovaSalaOptions {
+  roomId?: string;
+}
+
+export function useNovaSala(options?: UseNovaSalaOptions) {
   const router = useRouter();
+  const roomId = options?.roomId;
+  const isEditing = Boolean(roomId);
+
+  // Estados de carregamento inicial (para edição)
+  const [initialLoading, setInitialLoading] = useState(isEditing);
+  const [initialRoom, setInitialRoom] = useState<Room | null>(null);
 
   // Estados dos campos do formulário
   const [name, setName] = useState("");
@@ -25,6 +35,40 @@ export function useNovaSala() {
   const [geoMessage, setGeoMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Carrega dados existentes da sala caso seja modo de edição
+  useEffect(() => {
+    if (!roomId) return;
+
+    let isMounted = true;
+    setInitialLoading(true);
+    setError(null);
+
+    getRoom(roomId)
+      .then((data) => {
+        if (!isMounted) return;
+        setInitialRoom(data);
+        setName(data.name);
+        setLatStr(data.latitude.toString());
+        setLngStr(data.longitude.toString());
+        setToleranceRadius(data.tolerance_radius_meters);
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Não foi possível carregar os detalhes desta sala."
+        );
+      })
+      .finally(() => {
+        if (isMounted) setInitialLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [roomId]);
 
   // Conversão segura dos valores numéricos de coordenadas
   const latNum = useMemo(() => parseFloat(latStr.replace(",", ".")), [latStr]);
@@ -151,32 +195,47 @@ export function useNovaSala() {
     }
   }, [latNum, lngNum]);
 
-  // Submissão do cadastro
+  // Submissão do cadastro ou atualização
   const handleSubmit = useCallback(async () => {
-    if (!isFormValid || submitting) return;
+    if (!isFormValid || submitting || initialLoading) return;
 
     try {
       setSubmitting(true);
       setError(null);
 
-      await createRoom({
-        name: name.trim(),
-        latitude: latNum,
-        longitude: lngNum,
-        tolerance_radius_meters: toleranceRadius,
-      });
+      if (roomId) {
+        // Modo Edição: PATCH /rooms/{roomId}
+        await updateRoom(roomId, {
+          name: name.trim(),
+          latitude: latNum,
+          longitude: lngNum,
+          tolerance_radius_meters: toleranceRadius,
+        });
+      } else {
+        // Modo Criação: POST /rooms
+        await createRoom({
+          name: name.trim(),
+          latitude: latNum,
+          longitude: lngNum,
+          tolerance_radius_meters: toleranceRadius,
+        });
+      }
 
       // Redireciona com sucesso de volta para a listagem de salas
       router.push("/dashboard/salas");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Erro ao cadastrar a sala física."
+        err instanceof Error
+          ? err.message
+          : `Erro ao ${roomId ? "atualizar" : "cadastrar"} a sala física.`
       );
       setSubmitting(false);
     }
   }, [
     isFormValid,
     submitting,
+    initialLoading,
+    roomId,
     name,
     latNum,
     lngNum,
@@ -187,16 +246,19 @@ export function useNovaSala() {
   // Atalho Enter para submeter quando o formulário estiver pronto
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Enter" && isFormValid && !submitting) {
+      if (e.key === "Enter" && isFormValid && !submitting && !initialLoading) {
         handleSubmit();
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFormValid, submitting, handleSubmit]);
+  }, [isFormValid, submitting, initialLoading, handleSubmit]);
 
   return {
+    isEditing,
+    initialLoading,
+    initialRoom,
     name,
     setName,
     latStr,
@@ -230,4 +292,8 @@ export function useNovaSala() {
     CAMPUS_PRESETS,
     ROOM_NAME_SUGGESTIONS,
   };
+}
+
+export function useEditarSala(roomId: string) {
+  return useNovaSala({ roomId });
 }

@@ -4,7 +4,11 @@ import React from "react";
 import Link from "next/link";
 import { ChevronLeftIcon } from "@/components/icons";
 
-export function NovaSalaHeader() {
+export interface NovaSalaHeaderProps {
+  title?: string;
+}
+
+export function NovaSalaHeader({ title = "Nova Sala" }: NovaSalaHeaderProps) {
   return (
     <header className="flex h-[65px] shrink-0 items-center justify-between border-b border-border bg-paper px-10">
       <div className="flex items-center gap-3">
@@ -17,7 +21,7 @@ export function NovaSalaHeader() {
         </Link>
         <div className="h-4 w-px bg-border" />
         <span className="text-heading font-bold tracking-tight text-ink">
-          Nova Sala
+          {title}
         </span>
       </div>
       <Link
