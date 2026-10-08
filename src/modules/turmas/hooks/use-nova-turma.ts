@@ -6,7 +6,7 @@ import {
   createSubjectClass,
   enrollStudent,
 } from "@/services/subject-classes";
-import { listRooms, type Room } from "@/services/rooms";
+import { listAllRooms, type Room } from "@/services/rooms";
 import { listStudents, type StudentItem } from "@/services/tenants";
 import { getMyProfile, type UserProfileResponse } from "@/services/user";
 import type { StudentMode } from "../types";
@@ -90,7 +90,7 @@ export function useNovaTurma() {
         setLoadingRooms(true);
 
         const [roomsRes, profileRes] = await Promise.allSettled([
-          listRooms(),
+          listAllRooms(),
           getMyProfile(),
         ]);
 

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SalasPage } from "@/components/salas/salas-page";
+import { SalasPage } from "@/modules/salas";
 
 export const metadata: Metadata = {
   title: "Salas — Locus",

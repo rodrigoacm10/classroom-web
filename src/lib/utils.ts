@@ -228,3 +228,75 @@ export function formatSessionTimeRange(openedAt: string, expiresAt: string): str
   }
 }
 
+/**
+ * Formata data ISO no padrão dia, mês abreviado e ano (ex: "08 out 2026").
+ */
+export function formatDate(isoDate: string): string {
+  try {
+    return new Date(isoDate).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return isoDate;
+  }
+}
+
+/**
+ * Formata coordenada geográfica em graus, minutos e direção cardinal (ex: -8.05389 -> "8°03.233'S").
+ */
+export function formatCoord(value: number, type: "lat" | "lng"): string {
+  if (isNaN(value)) return "0°00.000'";
+  const abs = Math.abs(value);
+  const deg = Math.floor(abs);
+  const min = ((abs - deg) * 60).toFixed(3);
+  const dir = type === "lat" ? (value >= 0 ? "N" : "S") : value >= 0 ? "L" : "O";
+  return `${deg}°${min}'${dir}`;
+}
+
+export interface RadiusLabelInfo {
+  label: string;
+  color: string;
+  bg: string;
+}
+
+/**
+ * Retorna classificação, cor e background conforme o raio de presença em metros.
+ */
+export function getRadiusLabel(meters: number): RadiusLabelInfo {
+  if (meters <= 30) return { label: "Preciso", color: "var(--color-success)", bg: "var(--color-success-surface)" };
+  if (meters <= 75) return { label: "Padrão", color: "var(--color-ink)", bg: "var(--color-surface)" };
+  return { label: "Amplo", color: "var(--color-warn)", bg: "#FEF3C7" };
+}
+
+/**
+ * Retorna a URL de busca de coordenadas no Google Maps.
+ */
+export function getGoogleMapsUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
+export const ROOM_COLORS = [
+  { bg: "#E9F4FF", fg: "#1A6DC2" },
+  { bg: "#FFF0E0", fg: "#B05A00" },
+  { bg: "#F0EAF8", fg: "#6B38A8" },
+  { bg: "#E7F2EB", fg: "#1E7A44" },
+  { bg: "#FFF4CC", fg: "#896300" },
+  { bg: "#FCE8E8", fg: "#C42B1C" },
+  { bg: "#E0F7FA", fg: "#00696F" },
+  { bg: "#F3E5F5", fg: "#7B1FA2" },
+] as const;
+
+/**
+ * Retorna as cores de fundo e texto para o avatar da sala.
+ */
+export function getRoomAvatarColor(name: string): { bg: string; fg: string } {
+  const clean = name.trim();
+  const idx = clean
+    ? clean.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % ROOM_COLORS.length
+    : 0;
+  return ROOM_COLORS[idx];
+}
+
+

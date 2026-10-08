@@ -41,7 +41,7 @@ export function PageHeader({
         </h1>
         {subtitle && (
           typeof subtitle === "string" ? (
-            <span className="text-label text-muted">{subtitle}</span>
+            <p className="text-body text-muted">{subtitle}</p>
           ) : (
             subtitle
           )

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   listSubjectClasses,
-  listRooms,
+  listAllRooms,
   openAttendanceSession,
   generateClassFrequencyReport,
   type SubjectClassItem,
@@ -57,7 +57,7 @@ export function useNovaChamada() {
         // A API limita page_size a no máximo 50 (MAX_PAGE_SIZE = 50)
         const [classesRes, roomsRes] = await Promise.allSettled([
           listSubjectClasses({ active: true, page_size: 50 }),
-          listRooms(),
+          listAllRooms(),
         ]);
 
         if (!isMounted) return;

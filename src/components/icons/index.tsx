@@ -26,6 +26,27 @@ export function ChevronLeftIcon({ className = "", size = 16 }: IconProps) {
   );
 }
 
+export function ChevronRightIcon({ className = "", size = 16 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${className}`}
+    >
+      <path
+        d="M6 3l5 5-5 5"
+        stroke="var(--color-muted)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function ChevronDownIcon({ className = "", size = 16 }: IconProps) {
   return (
     <svg
@@ -204,23 +225,18 @@ export function LocationPinIcon({ className = "" }: IconProps) {
   );
 }
 
-export function RadiusIcon({ className = "" }: IconProps) {
+export function RadiusIcon({ className = "", size = 16 }: IconProps) {
   return (
     <svg
-      width="13"
-      height="13"
-      viewBox="0 0 14 14"
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`shrink-0 ${className}`}
     >
-      <circle cx="7" cy="7" r="5.5" stroke="var(--color-muted)" strokeWidth="1.4" />
-      <path
-        d="M7 4v3l2 1.2"
-        stroke="var(--color-muted)"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
+      <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.4" strokeDasharray="2.5 2" />
+      <circle cx="8" cy="8" r="1.5" fill="currentColor" />
     </svg>
   );
 }
@@ -466,5 +482,86 @@ export function GpsTargetIcon({ className = "", size = 14 }: IconProps) {
     </svg>
   );
 }
+
+export function CopyIcon({ className = "", size = 14 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 14 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${className}`}
+    >
+      <rect x="1" y="4" width="8" height="9" rx="1.2" stroke="currentColor" strokeWidth="1.3" />
+      <path
+        d="M4 4V2.5A1.5 1.5 0 0 1 5.5 1H11a1.5 1.5 0 0 1 1.5 1.5V8a1.5 1.5 0 0 1-1.5 1.5H10"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+export function DotsVerticalIcon({ className = "", size = 16 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${className}`}
+    >
+      <circle cx="8" cy="3.5" r="1.5" fill="currentColor" />
+      <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+      <circle cx="8" cy="12.5" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function PencilIcon({ className = "", size = 14 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 14 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${className}`}
+    >
+      <path
+        d="M10 2l2 2-7.5 7.5H2.5v-2L10 2z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function TrashIcon({ className = "", size = 14 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 14 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${className}`}
+    >
+      <path
+        d="M2.5 3.5h9M5 3.5V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M11.5 3.5l-.8 8.4A1.5 1.5 0 0 1 9.2 13.5H4.8a1.5 1.5 0 0 1-1.5-1.6L2.5 3.5M5.5 6.5v4M8.5 6.5v4"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 
 
