@@ -225,6 +225,28 @@ export function LocationPinIcon({ className = "" }: IconProps) {
   );
 }
 
+export function GpsIcon({ className = "", size = 15 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 15 15"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${className}`}
+    >
+      <circle cx="7.5" cy="7.5" r="5" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" />
+      <path
+        d="M7.5 1v2M7.5 12v2M1 7.5h2M12 7.5h2"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function RadiusIcon({ className = "", size = 16 }: IconProps) {
   return (
     <svg
