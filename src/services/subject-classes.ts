@@ -175,6 +175,30 @@ export async function listEnrollments(
   );
 }
 
+export type StudentSubjectClassResponse = {
+  enrollment_id: string;
+  subject_class_id: string;
+  name: string;
+  discipline_name: string;
+  room_id: string | null;
+  room_name: string | null;
+  professor_id: string | null;
+  professor_name: string | null;
+  attendance_rate: number;
+  status: string;
+  total_sessions: number;
+  absences_count: number;
+};
+
+/**
+ * Lista as turmas em que um aluno está matriculado (/members/{memberId}/subject-classes).
+ */
+export async function listStudentSubjectClasses(
+  memberId: string
+): Promise<StudentSubjectClassResponse[]> {
+  return api<StudentSubjectClassResponse[]>(`/members/${memberId}/subject-classes`);
+}
+
 export const subjectClassService = {
   listSubjectClasses,
   getSubjectClassMetrics,
@@ -183,5 +207,6 @@ export const subjectClassService = {
   enrollStudent,
   deleteEnrollment,
   listEnrollments,
+  listStudentSubjectClasses,
 };
 
