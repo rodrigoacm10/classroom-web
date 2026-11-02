@@ -12,7 +12,18 @@ type NavItem = {
   label: string;
   icon: (active: boolean) => React.ReactNode;
   exact?: boolean;
+  privilegedOnly?: boolean;
 };
+
+function InvitesIcon({ active }: { active: boolean }) {
+  const stroke = active ? "var(--color-accent)" : "var(--color-on-ink-muted)";
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+      <rect x="2.5" y="4.5" width="15" height="11" rx="2" stroke={stroke} strokeWidth="1.6" />
+      <path d="M3 6.5l6.3 4.4a1.2 1.2 0 0 0 1.4 0L17 6.5" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function HomeIcon({ active }: { active: boolean }) {
   return (
@@ -111,6 +122,7 @@ const navItems: NavItem[] = [
   { href: "/dashboard/chamadas", label: "Chamadas", icon: (active) => <AttendanceIcon active={active} /> },
   { href: "/dashboard/salas", label: "Salas", icon: (active) => <RoomsIcon active={active} /> },
   { href: "/dashboard/alunos", label: "Alunos", icon: (active) => <StudentsIcon active={active} /> },
+  { href: "/dashboard/convites", label: "Convites", icon: (active) => <InvitesIcon active={active} />, privilegedOnly: true },
   { href: "/dashboard/relatorios", label: "Relatórios", icon: (active) => <ReportsIcon active={active} /> },
   { href: "/dashboard/evidencias", label: "Evidências", icon: (active) => <EvidencesIcon active={active} /> },
   { href: "/dashboard/configuracoes", label: "Configurações", icon: (active) => <SettingsIcon active={active} /> },
@@ -118,6 +130,26 @@ const navItems: NavItem[] = [
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    getMyProfile()
+      .then((profile) => {
+        if (isMounted) setUserRole(profile.role);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (!item.privilegedOnly) return true;
+    // Oculta "Convites" para quem tem papel exclusivo de Professor ou Aluno
+    if (userRole === "professor" || userRole === "aluno") return false;
+    return true;
+  });
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col justify-between bg-ink px-[18px] pb-5 pt-7">
@@ -138,7 +170,7 @@ export function DashboardSidebar() {
 
         {/* Nav */}
         <nav className="flex flex-col gap-1" aria-label="Navegação principal">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const active = item.exact
               ? pathname === item.href
               : pathname.startsWith(item.href);
