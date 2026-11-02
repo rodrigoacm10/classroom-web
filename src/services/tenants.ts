@@ -23,11 +23,29 @@ export type StudentItem = {
   email: string;
   role: "aluno";
   created_at: string;
+  turmas_count?: number;
+  attendance_rate?: number;
+  total_sessions?: number;
+  total_present?: number;
+  total_absent?: number;
+  status?: "regular" | "at_risk" | "sem_turma";
+};
+
+export type StudentsMetricsResponse = {
+  total_students: number;
+  avg_classes_per_student: number;
+  total_enrollments: number;
+  average_attendance_rate: number;
+  students_at_risk: number;
+  students_no_class: number;
 };
 
 export type ListStudentsParams = {
   search?: string;
   subject_class_id?: string;
+  status?: "regular" | "sem_turma";
+  sort_by?: "name" | "turmas_count" | "created_at";
+  order?: "asc" | "desc";
   include_deleted?: boolean;
   page?: number;
   page_size?: number;
@@ -105,6 +123,9 @@ export async function listStudents(
   const query = new URLSearchParams();
   if (params.search) query.set("search", params.search);
   if (params.subject_class_id) query.set("subject_class_id", params.subject_class_id);
+  if (params.status) query.set("status", params.status);
+  if (params.sort_by) query.set("sort_by", params.sort_by);
+  if (params.order) query.set("order", params.order);
   if (params.include_deleted !== undefined)
     query.set("include_deleted", String(params.include_deleted));
   if (params.page !== undefined) query.set("page", String(params.page));
@@ -112,6 +133,14 @@ export async function listStudents(
 
   const qs = query.toString() ? `?${query.toString()}` : "";
   return api<StudentsPageResponse>(`/members/students${qs}`);
+}
+
+/**
+ * Consulta os KPIs consolidados dos alunos no tenant ativo (/members/students/metrics).
+ * Retorna contagem total de alunos, média de turmas por aluno, frequência média e alunos em risco.
+ */
+export async function getStudentsMetrics(): Promise<StudentsMetricsResponse> {
+  return api<StudentsMetricsResponse>("/members/students/metrics");
 }
 
 /**
@@ -201,14 +230,108 @@ export async function createTenant(
   });
 }
 
+export type SendInviteData = {
+  email: string;
+  role: "admin" | "professor" | "aluno" | "coordenador";
+  subject_class_ids?: string[];
+};
+
+/**
+ * Envia um convite de ingresso na instituição por e-mail, podendo já vincular turmas.
+ * Se o tenantId for omitido, utiliza a rota padrão da tenant ativa `/invites`.
+ */
+export async function sendInvite(
+  dataOrTenantId: string | SendInviteData,
+  maybeData?: SendInviteData,
+  token?: string
+): Promise<InviteStatusResponse> {
+  const tokenToUse = token ?? getStoredToken();
+  let url = "/invites";
+  let body: SendInviteData;
+
+  if (typeof dataOrTenantId === "string") {
+    url = `/tenants/${dataOrTenantId}/invites`;
+    body = maybeData!;
+  } else {
+    body = dataOrTenantId;
+  }
+
+  return api<InviteStatusResponse>(url, {
+    method: "POST",
+    body,
+    headers: tokenToUse ? { Authorization: `Bearer ${tokenToUse}` } : {},
+  });
+}
+
+/**
+ * Consulta os dados cadastrais e indicadores de frequência consolidados de um aluno específico (/members/students/{studentId}).
+ */
+export async function getStudent(studentId: string): Promise<StudentItem> {
+  return api<StudentItem>(`/members/students/${studentId}`);
+}
+
+export type StudentAttendanceHistoryItemResponse = {
+  session_id: string;
+  subject_class_id: string;
+  subject_class_name: string;
+  discipline_name: string;
+  room_id?: string | null;
+  room_name?: string | null;
+  opened_at: string;
+  session_status: string;
+  record_status?: string | null;
+  confirmed_at?: string | null;
+  record_id?: string | null;
+};
+
+export type StudentAttendanceHistoryPageResponse = {
+  items: StudentAttendanceHistoryItemResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+  pages: number;
+};
+
+/**
+ * Consulta o histórico de chamadas das turmas vinculadas do aluno (/members/{memberId}/attendance-history).
+ */
+export async function getStudentAttendanceHistory(
+  memberId: string,
+  params?: {
+    subject_class_id?: string;
+    status?: string;
+    page?: number;
+    page_size?: number;
+  }
+): Promise<StudentAttendanceHistoryPageResponse> {
+  const query = new URLSearchParams();
+  if (params?.subject_class_id && params.subject_class_id !== "all") {
+    query.set("subject_class_id", params.subject_class_id);
+  }
+  if (params?.status && params.status !== "all") {
+    query.set("status", params.status);
+  }
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.page_size) query.set("page_size", String(params.page_size));
+
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return api<StudentAttendanceHistoryPageResponse>(
+    `/members/${memberId}/attendance-history${qs}`
+  );
+}
+
 export const tenantService = {
   listMyTenants,
   switchTenant,
   listStudents,
+  getStudent,
+  getStudentsMetrics,
   listTenantMembers,
   getInvite,
   acceptInvite,
   createTenant,
+  sendInvite,
+  getStudentAttendanceHistory,
 };
 
 
