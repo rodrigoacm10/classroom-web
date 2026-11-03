@@ -177,12 +177,20 @@ export const MOCK_CONVITES: InviteItem[] = [
   },
 ];
 
-export function calculateInvitesKpis(invites: InviteItem[]): InvitesKpiData {
-  const total = invites.length;
-  const pending = invites.filter((i) => i.status === "pending").length;
-  const accepted = invites.filter((i) => i.status === "accepted").length;
-  const expired = invites.filter((i) => i.status === "expired").length;
-  const revoked = invites.filter((i) => i.status === "revoked").length;
+export function calculateInvitesKpis(
+  invites: InviteItem[],
+  days: number = 30
+): InvitesKpiData {
+  const cutoffTime = Date.now() - days * 24 * 60 * 60 * 1000;
+  const recentInvites = invites.filter(
+    (i) => new Date(i.created_at).getTime() >= cutoffTime
+  );
+
+  const total = recentInvites.length;
+  const pending = recentInvites.filter((i) => i.status === "pending").length;
+  const accepted = recentInvites.filter((i) => i.status === "accepted").length;
+  const expired = recentInvites.filter((i) => i.status === "expired").length;
+  const revoked = recentInvites.filter((i) => i.status === "revoked").length;
 
   const resolved = accepted + expired + revoked;
   const acceptanceRate = resolved > 0 ? Math.round((accepted / resolved) * 100) : 0;

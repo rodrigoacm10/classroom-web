@@ -171,9 +171,43 @@ export type InviteStatusResponse = {
   role: "admin" | "professor" | "aluno" | "coordenador";
   token: string;
   status: "pending" | "accepted" | "expired" | "revoked";
+  subject_class_ids?: string[];
+  subject_class_names?: string[];
   expires_at: string;
   created_at: string;
+  accepted_at?: string | null;
+  revoked_at?: string | null;
+  invited_by_name?: string | null;
 };
+
+export type TenantInvitesMetricsResponse = {
+  total: number;
+  pending: number;
+  accepted: number;
+  expired: number;
+  revoked: number;
+  acceptance_rate: number;
+  days: number;
+};
+
+export type ListTenantInvitesParams = {
+  status?: string;
+  role?: string;
+  search?: string;
+  sort_by?: "created_at" | "email" | "role" | "expires_at";
+  order?: "asc" | "desc";
+  page?: number;
+  page_size?: number;
+};
+
+export type TenantInvitesPageResponse = {
+  items: InviteStatusResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+  pages: number;
+};
+
 
 /**
  * Consulta os detalhes de um convite a partir do token (Endpoint público).
@@ -320,6 +354,52 @@ export async function getStudentAttendanceHistory(
   );
 }
 
+/**
+ * Lista convites com suporte a paginação e filtros por status, papel e busca por e-mail (/invites).
+ */
+export async function listInvites(
+  params?: ListTenantInvitesParams
+): Promise<TenantInvitesPageResponse> {
+  const query = new URLSearchParams();
+  if (params?.status && params.status !== "all") query.set("status", params.status);
+  if (params?.role && params.role !== "all") query.set("role", params.role);
+  if (params?.search) query.set("search", params.search);
+  if (params?.sort_by) query.set("sort_by", params.sort_by);
+  if (params?.order) query.set("order", params.order);
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.page_size) query.set("page_size", String(params.page_size));
+
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return api<TenantInvitesPageResponse>(`/invites${qs}`);
+}
+
+/**
+ * Consulta indicadores consolidados dos convites da instituição ativa (/invites/metrics).
+ */
+export async function getInvitesMetrics(
+  days: number = 30
+): Promise<TenantInvitesMetricsResponse> {
+  return api<TenantInvitesMetricsResponse>(`/invites/metrics?days=${days}`);
+}
+
+/**
+ * Reenvia um convite renovando a validade e enviando novo e-mail (/invites/{inviteId}/resend).
+ */
+export async function resendInvite(inviteId: string): Promise<InviteStatusResponse> {
+  return api<InviteStatusResponse>(`/invites/${inviteId}/resend`, {
+    method: "POST",
+  });
+}
+
+/**
+ * Revoga um convite pendente da instituição ativa (/invites/{inviteId}).
+ */
+export async function revokeInvite(inviteId: string): Promise<InviteStatusResponse> {
+  return api<InviteStatusResponse>(`/invites/${inviteId}`, {
+    method: "DELETE",
+  });
+}
+
 export const tenantService = {
   listMyTenants,
   switchTenant,
@@ -331,8 +411,13 @@ export const tenantService = {
   acceptInvite,
   createTenant,
   sendInvite,
+  listInvites,
+  getInvitesMetrics,
+  resendInvite,
+  revokeInvite,
   getStudentAttendanceHistory,
 };
+
 
 
 
