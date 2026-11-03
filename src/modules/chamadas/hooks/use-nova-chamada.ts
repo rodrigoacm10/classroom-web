@@ -25,6 +25,59 @@ export function useNovaChamada() {
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [classReport, setClassReport] = useState<ClassReportResponse | null>(null);
 
+  // Estados de geolocalização do professor
+  const [locationMode, setLocationMode] = useState<"room" | "current_gps">("room");
+  const [professorLat, setProfessorLat] = useState<number | null>(null);
+  const [professorLng, setProfessorLng] = useState<number | null>(null);
+  const [professorAccuracy, setProfessorAccuracy] = useState<number | null>(null);
+  const [customRadius, setCustomRadius] = useState<number>(50);
+  const [geoLocating, setGeoLocating] = useState<boolean>(false);
+  const [geoMessage, setGeoMessage] = useState<string | null>(null);
+
+  const RADIUS_OPTIONS = [30, 50, 80, 100, 150] as const;
+
+  const handleCaptureGps = useCallback(() => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setGeoMessage("Geolocalização não é suportada pelo seu navegador.");
+      return;
+    }
+
+    setGeoLocating(true);
+    setGeoMessage(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setProfessorLat(pos.coords.latitude);
+        setProfessorLng(pos.coords.longitude);
+        setProfessorAccuracy(pos.coords.accuracy ?? null);
+        setGeoLocating(false);
+        const acc = Math.round(pos.coords.accuracy ?? 0);
+        if (acc > 50) {
+          setGeoMessage(
+            `Posição capturada (~${acc}m). Se estiver no notebook via Wi-Fi/cabo, sugerimos usar um raio maior (ex: 80m ou 100m).`
+          );
+        } else {
+          setGeoMessage(`Posição GPS capturada com alta precisão (~${acc}m).`);
+        }
+      },
+      (err) => {
+        setGeoLocating(false);
+        if (err.code === 1) {
+          setGeoMessage("Permissão de localização negada pelo navegador. Permita o acesso nas configurações.");
+        } else if (err.code === 2) {
+          setGeoMessage("Sinal de GPS indisponível no momento.");
+        } else {
+          setGeoMessage("Tempo esgotado ao buscar sinal GPS. Tente novamente.");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  }, []);
+
   // Estados dos inputs de busca interna dos dropdowns
   const [classSearch, setClassSearch] = useState("");
   const [roomSearch, setRoomSearch] = useState("");
@@ -225,14 +278,32 @@ export function useNovaChamada() {
       return;
     }
 
+    if (locationMode === "current_gps") {
+      if (professorLat === null || professorLng === null) {
+        setError(
+          "Você selecionou 'Minha localização atual', mas o GPS ainda não foi capturado. Clique em 'Capturar localização GPS' antes de continuar."
+        );
+        return;
+      }
+    }
+
     try {
       setSubmitting(true);
       setError(null);
 
-      const session = await openAttendanceSession(selectedClass.id, {
-        room_id: selectedRoomId || undefined,
+      const payload: Parameters<typeof openAttendanceSession>[1] = {
         duration_minutes: duration,
-      });
+        room_id: selectedRoomId || undefined,
+      };
+
+      if (locationMode === "current_gps") {
+        payload.use_professor_location = true;
+        payload.latitude = professorLat;
+        payload.longitude = professorLng;
+        payload.tolerance_radius_meters = customRadius;
+      }
+
+      const session = await openAttendanceSession(selectedClass.id, payload);
 
       // Redireciona para a página de chamada ao vivo da sessão recém-criada
       router.push(`/dashboard/chamadas/${selectedClass.id}/${session.id}`);
@@ -241,7 +312,16 @@ export function useNovaChamada() {
     } finally {
       setSubmitting(false);
     }
-  }, [selectedClass, selectedRoomId, duration, router]);
+  }, [
+    selectedClass,
+    selectedRoomId,
+    duration,
+    locationMode,
+    professorLat,
+    professorLng,
+    customRadius,
+    router,
+  ]);
 
   // 5. Suporte a tecla Enter para iniciar a chamada quando houver turma selecionada
   useEffect(() => {
@@ -279,13 +359,18 @@ export function useNovaChamada() {
     ? `${selectedClass.discipline_name} · ${selectedClass.name}`
     : "Selecione uma turma";
 
-  const localLabel = selectedRoom
-    ? selectedRoom.name
-    : selectedClass?.room_name
-      ? selectedClass.room_name
-      : selectedClass
-        ? "Nenhuma sala vinculada (Selecione)"
-        : "Aguardando seleção da turma";
+  const localLabel =
+    locationMode === "current_gps"
+      ? professorLat !== null
+        ? `Minha Localização (Raio: ${customRadius}m)`
+        : "Minha Localização Atual"
+      : selectedRoom
+        ? selectedRoom.name
+        : selectedClass?.room_name
+          ? selectedClass.room_name
+          : selectedClass
+            ? "Nenhuma sala vinculada (Selecione)"
+            : "Aguardando seleção da turma";
 
   const studentCount = selectedClass?.student_count ?? 0;
 
@@ -348,6 +433,19 @@ export function useNovaChamada() {
     roomDropdownRef,
     classSearchInputRef,
     roomSearchInputRef,
+
+    // Geolocalização dinâmica do professor
+    locationMode,
+    setLocationMode,
+    professorLat,
+    professorLng,
+    professorAccuracy,
+    customRadius,
+    setCustomRadius,
+    RADIUS_OPTIONS,
+    geoLocating,
+    geoMessage,
+    handleCaptureGps,
 
     // Labels e derivados para preview
     turmaLabel,

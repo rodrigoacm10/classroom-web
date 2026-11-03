@@ -14,13 +14,35 @@ export function AoVivoStatusBadge({ item }: AoVivoStatusBadgeProps) {
     );
   }
 
-  if (item.within_radius === false) {
+  if (item.record_status === "approved") {
+    return (
+      <span
+        className="inline-flex items-center rounded-full px-2.5 py-0.5 text-label font-bold tracking-caps uppercase"
+        style={{ background: "var(--color-success-surface)", color: "var(--color-success)" }}
+      >
+        VALIDADA
+      </span>
+    );
+  }
+
+  if (item.record_status === "rejected") {
     return (
       <span
         className="inline-flex items-center rounded-full px-2.5 py-0.5 text-label font-bold tracking-caps uppercase"
         style={{ background: "var(--color-danger-surface)", color: "var(--color-danger)" }}
       >
-        FORA DO RAIO
+        REJEITADA
+      </span>
+    );
+  }
+
+  if (item.record_status === "irregular" || item.within_radius === false) {
+    return (
+      <span
+        className="inline-flex items-center rounded-full px-2.5 py-0.5 text-label font-bold tracking-caps uppercase"
+        style={{ background: "var(--color-danger-surface)", color: "var(--color-danger)" }}
+      >
+        {item.within_radius === false ? "FORA DO RAIO" : "COM RESSALVA"}
       </span>
     );
   }

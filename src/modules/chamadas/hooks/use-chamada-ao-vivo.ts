@@ -135,18 +135,51 @@ export function useChamadaAoVivo({ subjectClassId, sessionId }: UseChamadaAoVivo
 
   // ─── Derived Statistics ─────────────────────────────────────────────────────
   const totalStudents = session?.total_students ?? 0;
-  const presentCount = roster.filter((r) => r.record_id && r.within_radius !== false).length;
-  const outOfRadiusCount = roster.filter((r) => r.record_id && r.within_radius === false).length;
-  const notConfirmedCount = roster.filter((r) => !r.record_id).length;
+
+  const isStudentPresent = (r: SessionRosterItem) =>
+    Boolean(r.record_id) &&
+    (r.record_status === "approved" ||
+      r.record_status === "regular" ||
+      (!r.record_status && r.within_radius !== false));
+
+  const isStudentWithRessalva = (r: SessionRosterItem) =>
+    Boolean(r.record_id) &&
+    (r.record_status === "irregular" ||
+      (r.within_radius === false &&
+        r.record_status !== "approved" &&
+        r.record_status !== "rejected"));
+
+  const isStudentNotConfirmed = (r: SessionRosterItem) => !r.record_id;
+
+  const presentCount = roster.filter(isStudentPresent).length;
+  const outOfRadiusCount = roster.filter(isStudentWithRessalva).length;
+  const notConfirmedCount = roster.filter(isStudentNotConfirmed).length;
   const progressPct = totalStudents > 0 ? Math.round((presentCount / totalStudents) * 100) : 0;
 
   const filteredRoster = roster.filter((item) => {
     if (activeFilter === "all") return true;
-    if (activeFilter === "present") return item.record_id && item.within_radius !== false;
-    if (activeFilter === "not_confirmed") return !item.record_id;
-    if (activeFilter === "out_of_radius") return item.record_id && item.within_radius === false;
+    if (activeFilter === "present") return isStudentPresent(item);
+    if (activeFilter === "not_confirmed") return isStudentNotConfirmed(item);
+    if (activeFilter === "out_of_radius") return isStudentWithRessalva(item);
     return true;
   });
+
+  function updateRosterRecordStatus(
+    recordId: string,
+    decision: "approved" | "rejected"
+  ) {
+    setRoster((prev) =>
+      prev.map((item) => {
+        if (item.record_id === recordId) {
+          return {
+            ...item,
+            record_status: decision,
+          };
+        }
+        return item;
+      })
+    );
+  }
 
   // ─── Metadata ───────────────────────────────────────────────────────────────
   const disciplineName = session?.subject_class?.discipline_name ?? "";
@@ -189,6 +222,7 @@ export function useChamadaAoVivo({ subjectClassId, sessionId }: UseChamadaAoVivo
     metaLine,
     handleClose,
     handleCancel,
+    updateRosterRecordStatus,
     refresh: fetchData,
   };
 }

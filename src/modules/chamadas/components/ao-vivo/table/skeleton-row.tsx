@@ -8,9 +8,16 @@ export function AoVivoSkeletonRow() {
         <div className="h-4 w-40 rounded bg-border/60" />
         <div className="h-3 w-20 rounded bg-border/40" />
       </div>
-      <div className="h-3 w-20 rounded bg-border/40" />
-      <div className="h-3 w-14 rounded bg-border/40" />
-      <div className="h-6 w-24 rounded-full bg-border/40" />
+      <div className="w-[100px] shrink-0 flex justify-end">
+        <div className="h-3 w-16 rounded bg-border/40" />
+      </div>
+      <div className="w-[88px] shrink-0 flex justify-end">
+        <div className="h-3 w-12 rounded bg-border/40" />
+      </div>
+      <div className="w-[230px] shrink-0 flex justify-end gap-2">
+        <div className="h-6 w-24 rounded-full bg-border/40" />
+        <div className="h-6 w-16 rounded-lg bg-border/40" />
+      </div>
     </div>
   );
 }

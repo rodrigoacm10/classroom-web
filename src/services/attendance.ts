@@ -7,6 +7,9 @@ export type ActiveAttendanceSessionResponse = {
   discipline_name: string;
   day_code: string;
   room_id: string | null;
+  custom_latitude?: number | null;
+  custom_longitude?: number | null;
+  custom_tolerance_radius_meters?: number | null;
   room_name: string | null;
   opened_at: string;
   expires_at: string;
@@ -18,12 +21,19 @@ export type ActiveAttendanceSessionResponse = {
 export type CreateAttendanceSessionRequest = {
   room_id?: string | null;
   duration_minutes: number;
+  use_professor_location?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  tolerance_radius_meters?: number | null;
 };
 
 export type AttendanceSessionResponse = {
   id: string;
   subject_class_id: string;
   room_id: string | null;
+  custom_latitude?: number | null;
+  custom_longitude?: number | null;
+  custom_tolerance_radius_meters?: number | null;
   subject_class?: {
     id: string;
     name: string;
@@ -55,8 +65,36 @@ export type SessionRosterItem = {
   confirmed_at: string | null;
   distance_meters: number | null;
   within_radius: boolean | null;
-  /** "pending" | "approved" | "rejected" | null */
-  record_status: string | null;
+  /** "regular" | "irregular" | "approved" | "rejected" | null */
+  record_status: "regular" | "irregular" | "approved" | "rejected" | string | null;
+};
+
+/** Detalhes de auditoria de um registro de presença individual */
+export type AttendanceRecordResponse = {
+  id: string;
+  session_id: string;
+  tenant_member_id: string;
+  confirmed_at: string;
+  latitude: number;
+  longitude: number;
+  distance_meters: number;
+  within_radius: boolean;
+  gps_accuracy_meters: number | null;
+  record_status: "regular" | "irregular" | "approved" | "rejected";
+  irregularity_flags: string[];
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  device_id: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  device_info: Record<string, unknown> | null;
+  evidence_photo_url: string | null;
+};
+
+export type ReviewAttendanceRecordPayload = {
+  decision: "approved" | "rejected";
+  note?: string;
 };
 
 /**
@@ -103,6 +141,37 @@ export async function listSessionRoster(
 ): Promise<SessionRosterItem[]> {
   return api<SessionRosterItem[]>(
     `/subject-classes/${subjectClassId}/attendance-sessions/${sessionId}/roster`
+  );
+}
+
+/**
+ * Retorna os detalhes de auditoria de um registro de presença específico.
+ */
+export async function getAttendanceRecord(
+  subjectClassId: string,
+  sessionId: string,
+  recordId: string
+): Promise<AttendanceRecordResponse> {
+  return api<AttendanceRecordResponse>(
+    `/subject-classes/${subjectClassId}/attendance-sessions/${sessionId}/records/${recordId}`
+  );
+}
+
+/**
+ * Revisa um registro de presença irregular (aprovando ou rejeitando com justificativa).
+ */
+export async function reviewAttendanceRecord(
+  subjectClassId: string,
+  sessionId: string,
+  recordId: string,
+  payload: ReviewAttendanceRecordPayload
+): Promise<AttendanceRecordResponse> {
+  return api<AttendanceRecordResponse>(
+    `/subject-classes/${subjectClassId}/attendance-sessions/${sessionId}/records/${recordId}/review`,
+    {
+      method: "PATCH",
+      body: payload,
+    }
   );
 }
 
