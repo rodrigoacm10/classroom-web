@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { AtRiskStudent } from "../types";
 import { getInitials } from "@/lib/utils";
 
@@ -67,6 +68,16 @@ export function AtRiskList({
           ))
         )}
       </div>
+
+      {students.length > 0 && (
+        <Link
+          href="/dashboard/relatorios"
+          className="text-caption font-semibold text-muted hover:text-ink transition-colors flex items-center justify-end gap-1 pt-1"
+        >
+          <span>Auditoria completa em relatórios</span>
+          <span>→</span>
+        </Link>
+      )}
     </div>
   );
 }
