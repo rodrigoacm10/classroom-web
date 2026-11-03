@@ -7,7 +7,7 @@ import type {
   AlunosStatusFilter,
   TurmaOption,
   UserRoleScope,
-} from "../types";
+} from "../../types";
 
 export interface AlunosFiltersProps {
   searchQuery: string;

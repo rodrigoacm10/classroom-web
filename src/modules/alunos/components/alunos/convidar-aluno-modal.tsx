@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { CloseIcon, PlusIcon } from "@/components/icons";
-import type { TurmaOption } from "../types";
+import type { TurmaOption } from "../../types";
 
 export interface ConvidarAlunoModalProps {
   isOpen: boolean;

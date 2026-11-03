@@ -1,7 +1,9 @@
+"use client";
+
 import React from "react";
 import { PageHeader, PageHeaderAddIcon } from "@/components/global";
 import { getFormattedDateSubtitle } from "@/lib/utils";
-import type { UserRoleScope } from "../types";
+import type { UserRoleScope } from "../../types";
 
 export interface AlunosHeaderProps {
   roleScope: UserRoleScope;
