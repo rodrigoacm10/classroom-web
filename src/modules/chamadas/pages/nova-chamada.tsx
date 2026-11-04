@@ -38,6 +38,17 @@ export function NovaChamada() {
     setClassSearch,
     roomSearch,
     setRoomSearch,
+    locationMode,
+    setLocationMode,
+    professorLat,
+    professorLng,
+    professorAccuracy,
+    customRadius,
+    setCustomRadius,
+    RADIUS_OPTIONS,
+    geoLocating,
+    geoMessage,
+    handleCaptureGps,
     turmaLabel,
     localLabel,
     studentCount,
@@ -94,6 +105,17 @@ export function NovaChamada() {
           setRoomSearch={setRoomSearch}
           roomSearchInputRef={roomSearchInputRef}
           handleSelectRoom={handleSelectRoom}
+          locationMode={locationMode}
+          setLocationMode={setLocationMode}
+          professorLat={professorLat}
+          professorLng={professorLng}
+          professorAccuracy={professorAccuracy}
+          customRadius={customRadius}
+          setCustomRadius={setCustomRadius}
+          radiusOptions={RADIUS_OPTIONS}
+          geoLocating={geoLocating}
+          geoMessage={geoMessage}
+          onCaptureGps={handleCaptureGps}
           duration={duration}
           setDuration={setDuration}
           durationOptions={DURATION_OPTIONS}
@@ -113,6 +135,10 @@ export function NovaChamada() {
           reportLoading={reportLoading}
           duration={duration}
           setTurmaDropdownOpen={setTurmaDropdownOpen}
+          locationMode={locationMode}
+          professorLat={professorLat}
+          professorLng={professorLng}
+          customRadius={customRadius}
         />
       </div>
     </div>

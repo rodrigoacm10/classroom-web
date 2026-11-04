@@ -22,6 +22,10 @@ export interface NovaChamadaPreviewProps {
   reportLoading: boolean;
   duration: Duration;
   setTurmaDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  locationMode?: "room" | "current_gps";
+  professorLat?: number | null;
+  professorLng?: number | null;
+  customRadius?: number;
 }
 
 export function NovaChamadaPreview({
@@ -35,6 +39,10 @@ export function NovaChamadaPreview({
   reportLoading,
   duration,
   setTurmaDropdownOpen,
+  locationMode = "room",
+  professorLat = null,
+  professorLng = null,
+  customRadius = 50,
 }: NovaChamadaPreviewProps) {
   return (
     <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto bg-surface p-5">
@@ -186,22 +194,26 @@ export function NovaChamadaPreview({
                   <div className="flex items-center gap-[7px]">
                     <LocationPinIcon />
                     <span className="text-caption/caption text-muted">
-                      {selectedRoom
-                        ? `${selectedRoom.latitude.toFixed(4)}, ${selectedRoom.longitude.toFixed(4)}`
-                        : "-23.5505, -46.6333"}
+                      {locationMode === "current_gps"
+                        ? professorLat !== null && professorLng !== null
+                          ? `${professorLat.toFixed(4)}, ${professorLng.toFixed(4)} (GPS do Professor)`
+                          : "Aguardando captura do GPS..."
+                        : selectedRoom
+                          ? `${selectedRoom.latitude.toFixed(4)}, ${selectedRoom.longitude.toFixed(4)}`
+                          : "-23.5505, -46.6333"}
                     </span>
                   </div>
                   <div className="flex items-center gap-[7px]">
                     <RadiusIcon />
                     <span className="text-caption/caption text-muted">
-                      Raio: {selectedRoom?.tolerance_radius_meters ?? 80} m
+                      Raio: {locationMode === "current_gps" ? customRadius : (selectedRoom?.tolerance_radius_meters ?? 50)} m
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-[7px] rounded-md bg-surface px-2.5 py-[7px]">
                   <div className="h-[7px] w-[7px] shrink-0 rounded-full bg-success" />
                   <span className="text-[11px] leading-[14px] text-muted">
-                    Geofence ativo
+                    {locationMode === "current_gps" ? "Geofence Dinâmico Ativo" : "Geofence ativo"}
                   </span>
                 </div>
               </div>

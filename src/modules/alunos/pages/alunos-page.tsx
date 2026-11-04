@@ -2,12 +2,14 @@
 
 import React from "react";
 import { CallBanner } from "@/components/global";
-import { useAlunos } from "../hooks/use-alunos";
-import { AlunosHeader } from "../components/alunos-header";
-import { AlunosKpis } from "../components/alunos-kpis";
-import { AlunosFilters } from "../components/alunos-filters";
-import { AlunosTable } from "../components/alunos-table";
-import { ConvidarAlunoModal } from "../components/convidar-aluno-modal";
+import { useAlunos } from "../hooks";
+import {
+  AlunosHeader,
+  AlunosKpis,
+  AlunosFilters,
+  AlunosTable,
+  ConvidarAlunoModal,
+} from "../components/alunos";
 
 export function AlunosPage() {
   const {

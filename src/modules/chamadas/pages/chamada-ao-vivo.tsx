@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import type { SessionRosterItem } from "@/services/attendance";
 import { useChamadaAoVivo } from "../hooks";
 import {
   AoVivoHeader,
@@ -8,6 +9,7 @@ import {
   AoVivoFilters,
   AoVivoTable,
   AoVivoModals,
+  AuditoriaPresencaModal,
 } from "../components/ao-vivo";
 
 export interface ChamadaAoVivoProps {
@@ -16,6 +18,8 @@ export interface ChamadaAoVivoProps {
 }
 
 export function ChamadaAoVivo({ subjectClassId, sessionId }: ChamadaAoVivoProps) {
+  const [reviewingStudent, setReviewingStudent] = useState<SessionRosterItem | null>(null);
+
   const {
     session,
     roster,
@@ -44,6 +48,7 @@ export function ChamadaAoVivo({ subjectClassId, sessionId }: ChamadaAoVivoProps)
     metaLine,
     handleClose,
     handleCancel,
+    updateRosterRecordStatus,
   } = useChamadaAoVivo({ subjectClassId, sessionId });
 
   return (
@@ -87,7 +92,22 @@ export function ChamadaAoVivo({ subjectClassId, sessionId }: ChamadaAoVivoProps)
         outOfRadiusCount={outOfRadiusCount}
       />
 
-      <AoVivoTable loading={loading} roster={filteredRoster} />
+      <AoVivoTable
+        loading={loading}
+        roster={filteredRoster}
+        onReviewStudent={(item) => setReviewingStudent(item)}
+      />
+
+      <AuditoriaPresencaModal
+        isOpen={reviewingStudent !== null}
+        onClose={() => setReviewingStudent(null)}
+        subjectClassId={subjectClassId}
+        sessionId={sessionId}
+        studentItem={reviewingStudent}
+        onReviewSuccess={(recordId, decision) => {
+          updateRosterRecordStatus(recordId, decision);
+        }}
+      />
 
       <AoVivoModals
         showCloseConfirm={showCloseConfirm}

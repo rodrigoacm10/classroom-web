@@ -4,14 +4,16 @@ import React from "react";
 import Link from "next/link";
 import { CallBanner } from "@/components/global";
 import { CheckIcon, CloseIcon } from "@/components/icons";
-import { useAlunoDetalhes } from "../hooks/use-aluno-detalhes";
-import { AlunoDetalhesHeader } from "../components/detalhes/aluno-detalhes-header";
-import { AlunoDetalhesKpis } from "../components/detalhes/aluno-detalhes-kpis";
-import { AlunoDetalhesTabs } from "../components/detalhes/aluno-detalhes-tabs";
-import { TabTurmas } from "../components/detalhes/tab-turmas";
-import { TabHistorico } from "../components/detalhes/tab-historico";
-import { MatricularModal } from "../components/detalhes/matricular-modal";
-import { DesmatricularModal } from "../components/detalhes/desmatricular-modal";
+import { useAlunoDetalhes } from "../hooks";
+import {
+  AlunoDetalhesHeader,
+  AlunoDetalhesKpis,
+  AlunoDetalhesTabs,
+  TabTurmas,
+  TabHistorico,
+  MatricularModal,
+  DesmatricularModal,
+} from "../components/detalhes";
 
 export interface AlunoDetalhesPageProps {
   id: string;

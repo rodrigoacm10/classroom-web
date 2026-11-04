@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeftIcon,
@@ -6,8 +9,8 @@ import {
   SearchIcon,
 } from "@/components/icons";
 import { attendanceColor, attendanceBarColor, getInitials } from "@/lib/utils";
-import type { AlunoItem, UserRoleScope } from "../types";
-import { CURRENT_PROFESSOR_ID } from "../data/mock-alunos";
+import type { AlunoItem, UserRoleScope } from "../../types";
+import { CURRENT_PROFESSOR_ID } from "../../data/mock-alunos";
 
 export interface AlunosTableProps {
   alunos: AlunoItem[];
@@ -98,14 +101,30 @@ export function AlunosTable({
                 >
                   {/* Coluna 1: Aluno & Matrícula */}
                   <div className="col-span-4 flex items-center gap-3.5 pr-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-paper font-mono text-label font-bold shadow-2xs group-hover:scale-105 transition-transform">
+                    <Link
+                      href={`/dashboard/alunos/${aluno.id}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onSelectStudent) onSelectStudent(aluno);
+                      }}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-paper font-mono text-label font-bold shadow-2xs group-hover:scale-105 transition-transform"
+                      title={`Ver ficha de ${aluno.name}`}
+                    >
                       {initials}
-                    </div>
+                    </Link>
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-ink text-body truncate group-hover:text-accent-foreground">
+                        <Link
+                          href={`/dashboard/alunos/${aluno.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onSelectStudent) onSelectStudent(aluno);
+                          }}
+                          className="font-semibold text-ink text-body truncate hover:underline hover:text-accent group-hover:text-accent-foreground transition-colors"
+                          title={aluno.name}
+                        >
                           {aluno.name}
-                        </span>
+                        </Link>
                       </div>
                       <div className="flex items-center gap-2 text-caption text-muted truncate mt-0.5">
                         <span className="truncate">{aluno.email}</span>
@@ -124,11 +143,28 @@ export function AlunosTable({
                         ? "1 turma"
                         : `${aluno.turmas_count} turmas`}
                     </span>
-                    {aluno.turmas_count === 0 && (
+                    {aluno.turmas_count === 0 ? (
                       <span className="text-[11px] font-medium text-muted mt-0.5">
                         Sem matrículas
                       </span>
-                    )}
+                    ) : displayTurmas.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 mt-1 max-w-full overflow-hidden">
+                        {displayTurmas.slice(0, 2).map((t) => (
+                          <span
+                            key={t.id}
+                            className="inline-block max-w-[120px] truncate rounded bg-surface px-1.5 py-0.5 text-[10px] font-medium text-muted"
+                            title={t.name}
+                          >
+                            {t.name}
+                          </span>
+                        ))}
+                        {displayTurmas.length > 2 && (
+                          <span className="text-[10px] text-muted self-center">
+                            +{displayTurmas.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
 
                   {/* Coluna 3: Frequência Geral */}

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { attendanceColor } from "@/lib/utils";
-import type { AlunosKpiData, UserRoleScope } from "../types";
+import type { AlunosKpiData, UserRoleScope } from "../../types";
 
 export interface AlunosKpisProps {
   kpis: AlunosKpiData;

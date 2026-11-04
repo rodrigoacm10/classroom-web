@@ -275,3 +275,24 @@ body {
   text-decoration-thickness: 2px;
 }
 
+/* Print layout optimizations for official documents and attendance reports */
+@media print {
+  aside {
+    display: none !important;
+  }
+
+  main {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+  }
+
+  body, html {
+    overflow: visible !important;
+    height: auto !important;
+    background: #ffffff !important;
+  }
+}
+
+

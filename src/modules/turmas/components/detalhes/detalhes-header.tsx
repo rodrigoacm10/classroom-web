@@ -61,12 +61,35 @@ export function DetalhesHeader({ turma }: DetalhesHeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
+        <Link
+          href={`/dashboard/relatorios?turmaId=${turma.id}`}
+          className="flex h-10 items-center gap-1.5 rounded-lg border border-border bg-white px-3.5 text-label font-medium text-ink transition-colors hover:bg-surface cursor-pointer"
+          title="Ver relatório de frequência consolidado desta turma"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="text-muted shrink-0"
+          >
+            <path
+              d="M4 15V9M10 15V5M16 15v-3"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span>Ver Relatório</span>
+        </Link>
+
         <button
           type="button"
           onClick={() => router.push("/dashboard/turmas")}
           className="flex h-10 items-center rounded-lg border border-border bg-white px-4 text-label font-medium text-ink transition-colors hover:bg-surface cursor-pointer"
         >
-          ← Voltar para Turmas
+          ← Voltar
         </button>
 
         <Link

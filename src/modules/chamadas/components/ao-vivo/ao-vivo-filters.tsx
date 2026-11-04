@@ -21,9 +21,9 @@ export function AoVivoFilters({
 }: AoVivoFiltersProps) {
   const tabs: { id: LiveFilterTab; label: string; count: number }[] = [
     { id: "all", label: "Todos", count: rosterLength },
-    { id: "present", label: "Presente", count: presentCount },
-    { id: "not_confirmed", label: "Não confirmou", count: notConfirmedCount },
-    { id: "out_of_radius", label: "Fora do raio", count: outOfRadiusCount },
+    { id: "present", label: "Presentes", count: presentCount },
+    { id: "not_confirmed", label: "Não confirmaram", count: notConfirmedCount },
+    { id: "out_of_radius", label: "Com ressalva", count: outOfRadiusCount },
   ];
 
   return (
