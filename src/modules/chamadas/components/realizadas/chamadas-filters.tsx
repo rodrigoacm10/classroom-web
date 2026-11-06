@@ -137,11 +137,11 @@ export function ChamadasFilters({
             onChange={(e) => onPeriodChange(e.target.value as AttendancePeriod)}
             className="cursor-pointer appearance-none rounded-lg border border-border bg-white py-[9px] pr-8 pl-[14px] font-sans text-[14px] text-ink focus:border-control-border focus:outline-none"
           >
-            <option value="30">Período: Últimos 30 dias</option>
+            <option value="all">Período: Todos os períodos</option>
+            <option value="30">Últimos 30 dias</option>
             <option value="15">Últimos 15 dias</option>
             <option value="7">Últimos 7 dias</option>
             <option value="1">Hoje (1 dia)</option>
-            <option value="all">Todos os períodos</option>
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
             <svg

@@ -22,7 +22,7 @@ export function useChamadasRealizadas() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState<AttendanceStatusFilter>("all");
-  const [selectedPeriod, setSelectedPeriod] = useState<AttendancePeriod>("30");
+  const [selectedPeriod, setSelectedPeriod] = useState<AttendancePeriod>("all");
   const [selectedSort, setSelectedSort] = useState<AttendanceSort>("recent");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 7;

@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 
 function cn(...classes: (string | undefined | null | false)[]): string {
@@ -88,7 +90,7 @@ export function TablePagination({
                 )}
                 <button
                   type="button"
-                  disabled={loading}
+                  disabled={currentPage === p || loading}
                   onClick={() => onPageChange(p)}
                   className={cn(
                     "flex h-6 w-6 cursor-pointer items-center justify-center rounded font-sans text-label transition-colors",
