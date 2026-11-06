@@ -3,11 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeftIcon, PlusIcon, MapPinIcon } from "@/components/icons";
+import { ChevronLeftIcon, PlusIcon, MapPinIcon, EditIcon } from "@/components/icons";
 import type { SubjectClassItem } from "@/services/subject-classes";
 
 export interface DetalhesHeaderProps {
   turma: SubjectClassItem;
+  isAdmin?: boolean;
 }
 
 export function DetalhesHeader({ turma }: DetalhesHeaderProps) {
@@ -60,7 +61,16 @@ export function DetalhesHeader({ turma }: DetalhesHeaderProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <Link
+          href={`/dashboard/turmas/${turma.id}/editar`}
+          className="flex h-10 items-center gap-1.5 rounded-lg border border-border bg-white px-3.5 text-label font-bold text-ink transition-colors hover:bg-surface hover:border-ink/30 cursor-pointer shadow-2xs"
+          title="Editar dados da turma"
+        >
+          <EditIcon size={14} className="text-muted" />
+          <span>Editar</span>
+        </Link>
+
         <Link
           href={`/dashboard/relatorios?turmaId=${turma.id}`}
           className="flex h-10 items-center gap-1.5 rounded-lg border border-border bg-white px-3.5 text-label font-medium text-ink transition-colors hover:bg-surface cursor-pointer"
@@ -81,13 +91,13 @@ export function DetalhesHeader({ turma }: DetalhesHeaderProps) {
               strokeLinecap="round"
             />
           </svg>
-          <span>Ver Relatório</span>
+          <span className="hidden sm:inline">Relatório</span>
         </Link>
 
         <button
           type="button"
           onClick={() => router.push("/dashboard/turmas")}
-          className="flex h-10 items-center rounded-lg border border-border bg-white px-4 text-label font-medium text-ink transition-colors hover:bg-surface cursor-pointer"
+          className="flex h-10 items-center rounded-lg border border-border bg-white px-3.5 text-label font-medium text-ink transition-colors hover:bg-surface cursor-pointer"
         >
           ← Voltar
         </button>
@@ -97,7 +107,7 @@ export function DetalhesHeader({ turma }: DetalhesHeaderProps) {
           className="flex h-10 items-center gap-2 rounded-lg bg-ink px-4 text-label font-bold text-white shadow-xs transition-opacity hover:opacity-90 active:scale-[0.98]"
         >
           <PlusIcon size={14} />
-          <span>Abrir chamada nesta turma</span>
+          <span>Abrir chamada</span>
         </Link>
       </div>
     </div>
