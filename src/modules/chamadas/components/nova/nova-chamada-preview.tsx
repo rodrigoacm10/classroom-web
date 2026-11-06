@@ -7,7 +7,9 @@ import {
   StudentsIcon,
   LocationPinIcon,
   RadiusIcon,
+  ExternalLinkIcon,
 } from "@/components/icons";
+import { GeofenceMap } from "@/components/map";
 import type { Duration } from "../../types";
 import { PreviewSkeleton } from "./nova-chamada-skeletons";
 
@@ -44,6 +46,23 @@ export function NovaChamadaPreview({
   professorLng = null,
   customRadius = 50,
 }: NovaChamadaPreviewProps) {
+  const isGpsMode = locationMode === "current_gps";
+  const hasGpsCoords = professorLat !== null && professorLng !== null;
+
+  const mapLat = isGpsMode
+    ? professorLat
+    : selectedRoom
+      ? selectedRoom.latitude
+      : -23.5505;
+  const mapLng = isGpsMode
+    ? professorLng
+    : selectedRoom
+      ? selectedRoom.longitude
+      : -46.6333;
+  const mapRadius = isGpsMode
+    ? customRadius
+    : selectedRoom?.tolerance_radius_meters ?? 50;
+
   return (
     <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto bg-surface p-5">
       {loading ? (
@@ -166,36 +185,48 @@ export function NovaChamadaPreview({
           {/* Bottom cards row */}
           <div className="flex min-h-0 flex-1 gap-3.5">
             {/* Geofence map card */}
-            <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-border bg-paper">
-              {/* Map placeholder */}
-              <div
-                className="relative flex flex-1 items-center justify-center overflow-hidden"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #eaeef2 0%, #dce3ea 50%, #d0d9e3 100%)",
-                }}
-              >
-                <div className="absolute inset-0" style={{ background: "#4285F41F" }} />
-                <div className="relative flex h-[72px] w-[72px] shrink-0 items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#FFC4008C] bg-[#FFC40026]" />
-                  <div
-                    className="relative h-[22px] w-[22px] shrink-0 rounded-tl-full rounded-tr-full rounded-br-full bg-accent border-[3px] border-solid border-ink origin-center shadow-[0px_2px_8px_#00000040]"
-                    style={{ rotate: "-45deg" }}
-                  />
-                </div>
+            <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-border bg-paper shadow-xs">
+              {/* Real Interactive Geofence Map */}
+              <div className="relative flex-1 min-h-[190px] w-full overflow-hidden border-b border-border bg-surface">
+                <GeofenceMap
+                  latitude={mapLat}
+                  longitude={mapLng}
+                  radius={mapRadius}
+                  interactive={true}
+                  scrollWheelZoom={false}
+                  placeholderText={
+                    isGpsMode && !hasGpsCoords
+                      ? "Aguardando captura do GPS do professor..."
+                      : "Aguardando coordenadas..."
+                  }
+                  className="w-full h-full min-h-[190px]"
+                />
               </div>
 
               {/* Map info */}
               <div className="flex shrink-0 flex-col gap-2 px-4 py-3.5">
-                <span className="text-[14px] font-bold leading-[18px] text-ink">
-                  {localLabel}
-                </span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[14px] font-bold leading-[18px] text-ink truncate">
+                    {localLabel}
+                  </span>
+                  {mapLat !== null && mapLng !== null && (
+                    <a
+                      href={`https://www.google.com/maps?q=${mapLat},${mapLng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Abrir no Google Maps"
+                      className="text-caption text-muted hover:text-ink transition-colors flex items-center gap-1 shrink-0"
+                    >
+                      <ExternalLinkIcon size={12} />
+                    </a>
+                  )}
+                </div>
                 <div className="flex flex-col gap-[5px]">
                   <div className="flex items-center gap-[7px]">
                     <LocationPinIcon />
                     <span className="text-caption/caption text-muted">
-                      {locationMode === "current_gps"
-                        ? professorLat !== null && professorLng !== null
+                      {isGpsMode
+                        ? hasGpsCoords
                           ? `${professorLat.toFixed(4)}, ${professorLng.toFixed(4)} (GPS do Professor)`
                           : "Aguardando captura do GPS..."
                         : selectedRoom
@@ -206,14 +237,14 @@ export function NovaChamadaPreview({
                   <div className="flex items-center gap-[7px]">
                     <RadiusIcon />
                     <span className="text-caption/caption text-muted">
-                      Raio: {locationMode === "current_gps" ? customRadius : (selectedRoom?.tolerance_radius_meters ?? 50)} m
+                      Raio: {mapRadius} m
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-[7px] rounded-md bg-surface px-2.5 py-[7px]">
                   <div className="h-[7px] w-[7px] shrink-0 rounded-full bg-success" />
                   <span className="text-[11px] leading-[14px] text-muted">
-                    {locationMode === "current_gps" ? "Geofence Dinâmico Ativo" : "Geofence ativo"}
+                    {isGpsMode ? "Geofence Dinâmico Ativo" : "Geofence ativo"}
                   </span>
                 </div>
               </div>

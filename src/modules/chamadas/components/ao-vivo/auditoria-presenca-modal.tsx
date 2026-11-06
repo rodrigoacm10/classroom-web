@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   CloseIcon,
   CheckIcon,
@@ -10,20 +10,25 @@ import {
   UsersIcon,
   MapPinIcon,
   InfoIcon,
+  ChevronDownIcon,
 } from "@/components/icons";
 import { formatDateTime, formatDistance } from "@/lib/utils";
+import { AuditMap } from "@/components/map";
 import {
   getAttendanceRecord,
   reviewAttendanceRecord,
   type AttendanceRecordResponse,
+  type AttendanceSessionResponse,
   type SessionRosterItem,
 } from "@/services/attendance";
+import { getRoom, type Room } from "@/services/rooms";
 
 export interface AuditoriaPresencaModalProps {
   isOpen: boolean;
   onClose: () => void;
   subjectClassId: string;
   sessionId: string;
+  session?: AttendanceSessionResponse | null;
   studentItem: SessionRosterItem | null;
   onReviewSuccess: (
     recordId: string,
@@ -37,17 +42,69 @@ export function AuditoriaPresencaModal({
   onClose,
   subjectClassId,
   sessionId,
+  session,
   studentItem,
   onReviewSuccess,
 }: AuditoriaPresencaModalProps) {
   const [record, setRecord] = useState<AttendanceRecordResponse | null>(null);
+  const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [showMap, setShowMap] = useState(false);
 
+  const cachedRoomId = useRef<string | null>(null);
+
+  // Fecha o modal ao pressionar ESC
   useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Carrega informações da sala se necessário (com cache simples para evitar refetch ao alternar alunos)
+  useEffect(() => {
+    if (!isOpen || !session?.room_id || session.custom_latitude != null) {
+      return;
+    }
+    if (cachedRoomId.current === session.room_id && room) {
+      return;
+    }
+
+    let isMounted = true;
+    getRoom(session.room_id)
+      .then((data) => {
+        if (isMounted) {
+          cachedRoomId.current = session.room_id;
+          setRoom(data);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, session?.room_id, session?.custom_latitude, room]);
+
+  const roomLat = session?.custom_latitude ?? room?.latitude ?? null;
+  const roomLng = session?.custom_longitude ?? room?.longitude ?? null;
+  const toleranceRadius =
+    session?.custom_tolerance_radius_meters ??
+    room?.tolerance_radius_meters ??
+    50;
+  const roomName = session?.room?.name ?? room?.name ?? "Sala de Aula";
+
+  // Busca detalhes do registro de presença
+  useEffect(() => {
+    setShowMap(false);
+
     if (!isOpen || !studentItem?.record_id) {
       setRecord(null);
       setFetchError(null);
@@ -104,11 +161,26 @@ export function AuditoriaPresencaModal({
     }
   }
 
-  // Identificar flags de irregularidade
+  // Identificar flags de irregularidade e dados espaciais
   const flags = record?.irregularity_flags ?? [];
+  const effectiveDistance = record?.distance_meters ?? studentItem.distance_meters;
+  const effectiveWithinRadius =
+    record !== null ? record.within_radius : studentItem.within_radius;
+  const effectiveTolerance = toleranceRadius;
+
   const isOutsideRadius =
     flags.includes("outside_radius") ||
-    (record !== null && !record.within_radius);
+    effectiveWithinRadius === false ||
+    (effectiveDistance !== null && effectiveDistance > effectiveTolerance);
+
+  const excessMeters =
+    isOutsideRadius &&
+    effectiveDistance !== null &&
+    effectiveDistance > effectiveTolerance
+      ? Math.round(effectiveDistance - effectiveTolerance)
+      : null;
+
+  const hasCoordinates = Boolean(record?.latitude != null && record?.longitude != null);
 
   return (
     <div
@@ -152,7 +224,7 @@ export function AuditoriaPresencaModal({
           {loading ? (
             <div className="space-y-4 py-8 animate-pulse">
               <div className="h-14 rounded-xl bg-surface" />
-              <div className="h-24 rounded-xl bg-surface" />
+              <div className="h-28 rounded-xl bg-surface" />
               <div className="h-20 rounded-xl bg-surface" />
             </div>
           ) : fetchError ? (
@@ -239,7 +311,224 @@ export function AuditoriaPresencaModal({
                 </div>
               </div>
 
-              {/* Lista de Inconsistências / Ressalvas */}
+              {/* Informação Clara de Raio e Geolocalização (sem carregar o mapa pesado imediatamente) */}
+              <div className="overflow-hidden rounded-xl border border-border bg-paper shadow-xs">
+                {/* Cabeçalho da Evidência Espacial */}
+                <div className="flex items-center justify-between border-b border-border bg-[#FAFAFA] px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`flex h-7 w-7 items-center justify-center rounded-lg ${
+                        isOutsideRadius
+                          ? "bg-danger-surface text-danger"
+                          : effectiveWithinRadius
+                          ? "bg-success-surface text-success"
+                          : "bg-surface text-muted"
+                      }`}
+                    >
+                      <MapPinIcon size={15} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-caps text-muted block">
+                        Validação de Raio & Presença Física
+                      </span>
+                      <span className="text-caption font-semibold text-ink">
+                        Espaço: {roomName}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Badge de status no raio */}
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                      isOutsideRadius
+                        ? "bg-danger-surface text-danger border border-danger/30"
+                        : effectiveWithinRadius
+                        ? "bg-success-surface text-success border border-success/30"
+                        : "bg-surface text-muted border border-border"
+                    }`}
+                  >
+                    {isOutsideRadius ? (
+                      <>
+                        <CloseIcon size={11} />
+                        FORA DO RAIO
+                      </>
+                    ) : effectiveWithinRadius ? (
+                      <>
+                        <CheckIcon size={11} />
+                        DENTRO DO RAIO
+                      </>
+                    ) : (
+                      "SEM DADOS GPS"
+                    )}
+                  </span>
+                </div>
+
+                {/* Resumo da validação de raio */}
+                <div className="p-4 space-y-3">
+                  <div
+                    className={`flex items-start gap-3 rounded-lg border p-3 ${
+                      isOutsideRadius
+                        ? "border-danger/30 bg-danger-surface/70 text-ink"
+                        : effectiveWithinRadius
+                        ? "border-success/30 bg-success-surface/70 text-ink"
+                        : "border-border bg-surface/50 text-muted"
+                    }`}
+                  >
+                    <div className="mt-0.5 shrink-0">
+                      {isOutsideRadius ? (
+                        <AlertTriangleIcon size={18} className="text-danger" />
+                      ) : effectiveWithinRadius ? (
+                        <CheckIcon size={18} className="text-success" />
+                      ) : (
+                        <InfoIcon size={18} className="text-muted" />
+                      )}
+                    </div>
+                    <div className="text-caption leading-relaxed flex-1">
+                      {isOutsideRadius ? (
+                        <div>
+                          <p className="font-bold text-danger text-label">
+                            O aluno confirmou presença FORA do perímetro delimitado.
+                          </p>
+                          <p className="text-ink mt-0.5">
+                            Distância registrada de{" "}
+                            <strong>{formatDistance(effectiveDistance)}</strong> da sala,
+                            ultrapassando a margem de tolerância ({formatDistance(effectiveTolerance)})
+                            {excessMeters ? ` em cerca de ${formatDistance(excessMeters)}.` : "."}
+                          </p>
+                        </div>
+                      ) : effectiveWithinRadius ? (
+                        <div>
+                          <p className="font-bold text-success text-label">
+                            O aluno confirmou presença DENTRO do perímetro da sala.
+                          </p>
+                          <p className="text-ink mt-0.5">
+                            Distância de <strong>{formatDistance(effectiveDistance)}</strong>, dentro
+                            da margem de tolerância de{" "}
+                            <strong>{formatDistance(effectiveTolerance)}</strong> da sala de aula.
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="font-bold text-ink text-label">
+                            Telemetria geoespacial não disponível
+                          </p>
+                          <p className="text-muted mt-0.5">
+                            Não foram detectadas coordenadas precisas no momento da confirmação.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Métricas rápidas: Distância vs Raio vs Precisão */}
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-lg border border-border bg-[#FAFAFA] p-2.5">
+                      <span className="text-[10px] uppercase font-bold tracking-caps text-muted block">
+                        Distância do Aluno
+                      </span>
+                      <span
+                        className={`text-label font-bold block mt-0.5 ${
+                          isOutsideRadius ? "text-danger" : "text-ink"
+                        }`}
+                      >
+                        {formatDistance(effectiveDistance)}
+                      </span>
+                    </div>
+
+                    <div className="rounded-lg border border-border bg-[#FAFAFA] p-2.5">
+                      <span className="text-[10px] uppercase font-bold tracking-caps text-muted block">
+                        Raio Permitido
+                      </span>
+                      <span className="text-label font-bold text-ink block mt-0.5">
+                        {formatDistance(effectiveTolerance)}
+                      </span>
+                    </div>
+
+                    <div className="rounded-lg border border-border bg-[#FAFAFA] p-2.5">
+                      <span className="text-[10px] uppercase font-bold tracking-caps text-muted block">
+                        Precisão do GPS
+                      </span>
+                      <span className="text-label font-bold text-ink block mt-0.5">
+                        {record.gps_accuracy_meters
+                          ? `±${Math.round(record.gps_accuracy_meters)}m`
+                          : "—"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Botão para carregar o mapa interativo sob demanda */}
+                  {hasCoordinates ? (
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowMap((prev) => !prev)}
+                        className="flex w-full items-center justify-between rounded-lg border border-border bg-white px-3.5 py-2.5 text-label font-semibold text-ink shadow-2xs hover:bg-surface hover:border-ink/30 transition-all cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <MapPinIcon size={15} className="text-muted" />
+                          <span>
+                            {showMap
+                              ? "Ocultar mapa de evidência"
+                              : "Visualizar evidência no mapa interativo"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-caption text-muted font-normal">
+                          <span>{showMap ? "Recolher" : "Carregar mapa"}</span>
+                          <ChevronDownIcon
+                            size={15}
+                            className={`transition-transform duration-200 ${
+                              showMap ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Mapa carregado estritamente sob demanda */}
+                {hasCoordinates && showMap && (
+                  <div className="border-t border-border bg-paper animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between border-b border-border bg-[#FAFAFA] px-4 py-2 text-caption text-muted">
+                      <span className="text-[10px] font-bold uppercase tracking-caps text-muted">
+                        Visualização Georreferenciada (Leaflet)
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1.5 font-medium">
+                          <span className="inline-block h-2.5 w-2.5 rounded-full bg-accent border border-ink" />
+                          {roomName}
+                        </span>
+                        <span className="flex items-center gap-1.5 font-medium">
+                          <span
+                            className={`inline-block h-2.5 w-2.5 rounded-full border border-ink ${
+                              isOutsideRadius ? "bg-danger" : "bg-success"
+                            }`}
+                          />
+                          {studentItem.student_name.split(" ")[0]} ({formatDistance(effectiveDistance)})
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="h-60 w-full">
+                      <AuditMap
+                        studentLat={record.latitude!}
+                        studentLng={record.longitude!}
+                        studentName={studentItem.student_name}
+                        accuracyMeters={record.gps_accuracy_meters}
+                        roomLat={roomLat}
+                        roomLng={roomLng}
+                        roomName={roomName}
+                        toleranceRadius={effectiveTolerance}
+                        distanceMeters={effectiveDistance}
+                        isOutsideRadius={isOutsideRadius}
+                        className="h-60 w-full"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Lista de Inconsistências / Ressalvas Adicionais */}
               <div className="rounded-xl border border-border bg-[#FAFAFA] p-4">
                 <span className="block text-caption font-bold uppercase tracking-caps text-muted mb-3">
                   Inconsistências Identificadas ({flags.length > 0 ? flags.length : isOutsideRadius ? 1 : 0})
@@ -256,7 +545,8 @@ export function AuditoriaPresencaModal({
                           Fora do Raio Permitido
                         </p>
                         <p className="text-muted mt-0.5">
-                          O aluno confirmou a <strong>{formatDistance(record.distance_meters)}</strong> do centro da sala de aula física cadastrada, ultrapassando a margem de tolerância.
+                          O aluno confirmou a <strong>{formatDistance(effectiveDistance)}</strong> do
+                          centro da sala física cadastrada, ultrapassando a margem de tolerância.
                         </p>
                       </div>
                     </div>
@@ -350,7 +640,7 @@ export function AuditoriaPresencaModal({
                     Distância Calculada
                   </span>
                   <span className="font-mono text-body font-bold text-ink block mt-0.5">
-                    {formatDistance(record.distance_meters)}
+                    {formatDistance(effectiveDistance)}
                   </span>
                 </div>
 
@@ -460,4 +750,3 @@ export function AuditoriaPresencaModal({
     </div>
   );
 }
-
