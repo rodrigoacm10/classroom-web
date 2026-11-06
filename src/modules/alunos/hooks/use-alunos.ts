@@ -12,11 +12,6 @@ import type {
   TurmaOption,
   UserRoleScope,
 } from "../types";
-import {
-  MOCK_ALUNOS,
-  MOCK_TURMAS,
-  CURRENT_PROFESSOR_ID,
-} from "../data/mock-alunos";
 
 export function useAlunos() {
   // Perfil e alternador de escopo (Admin/Gestor vs Professor)
@@ -197,14 +192,8 @@ export function useAlunos() {
 
   // Turmas disponíveis
   const availableTurmas = useMemo<TurmaOption[]>(() => {
-    if (apiTurmas !== null) {
-      return apiTurmas;
-    }
-    if (roleScope === "professor") {
-      return MOCK_TURMAS.filter((t) => t.is_mine);
-    }
-    return MOCK_TURMAS;
-  }, [apiTurmas, roleScope]);
+    return apiTurmas ?? [];
+  }, [apiTurmas]);
 
   // Manipuladores de Drawer
   const openDrawer = (student: AlunoItem) => {
@@ -251,21 +240,17 @@ export function useAlunos() {
     }
   };
 
-  // KPIs de fallback se a API não estiver conectada
-  const fallbackKpis: AlunosKpiData = useMemo(() => {
-    const total = MOCK_ALUNOS.length;
-    const totalEnrollments = MOCK_ALUNOS.reduce((acc, a) => acc + a.turmas_count, 0);
-    return {
-      totalStudents: total,
-      avgClassesPerStudent: Number((totalEnrollments / total).toFixed(1)),
-      avgAttendanceRate: 85,
-      atRiskCount: 0,
-      noClassCount: MOCK_ALUNOS.filter((a) => a.turmas_count === 0).length,
-      totalEnrollments,
-    };
-  }, []);
+  // KPIs vazios/padrão se a API ainda não tiver retornado
+  const defaultKpis: AlunosKpiData = {
+    totalStudents: 0,
+    avgClassesPerStudent: 0,
+    avgAttendanceRate: 0,
+    atRiskCount: 0,
+    noClassCount: 0,
+    totalEnrollments: 0,
+  };
 
-  const totalStudents = apiTotal ?? MOCK_ALUNOS.length;
+  const totalStudents = apiTotal ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalStudents / pageSize));
 
   return {
@@ -296,8 +281,8 @@ export function useAlunos() {
     setCurrentPage,
     pageSize,
     availableTurmas,
-    kpis: apiKpis ?? fallbackKpis,
-    alunos: apiAlunos ?? MOCK_ALUNOS.slice(0, pageSize),
+    kpis: apiKpis ?? defaultKpis,
+    alunos: apiAlunos ?? [],
     totalStudents,
     totalPages,
     handleClearFilters,

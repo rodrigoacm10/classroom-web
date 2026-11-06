@@ -18,12 +18,6 @@ import type {
   TurmaOption,
   UserRoleScope,
 } from "../types";
-import {
-  MOCK_ALUNOS,
-  MOCK_TURMAS,
-  CURRENT_PROFESSOR_ID,
-  getMockChamadasHistorico,
-} from "../data/mock-alunos";
 
 export function useAlunoDetalhes(id: string) {
   const [aluno, setAluno] = useState<AlunoItem | null>(null);
@@ -101,8 +95,7 @@ export function useAlunoDetalhes(id: string) {
         }
       })
       .catch(() => {
-        // Fallback para mock se backend offline
-        if (isMounted) setAllInstitutionTurmas(MOCK_TURMAS);
+        if (isMounted) setAllInstitutionTurmas([]);
       });
 
     return () => {
@@ -137,6 +130,7 @@ export function useAlunoDetalhes(id: string) {
             total_absent: c.absences_count,
             avg_distance_meters: 0,
             status: c.attendance_rate < 0.75 ? "at_risk" : "regular",
+            is_mine: c.professor_id === currentUserId,
           }));
 
           const statusVal: "regular" | "at_risk" | "sem_turma" =
@@ -167,19 +161,12 @@ export function useAlunoDetalhes(id: string) {
 
           setAluno(studentObj);
         } else {
-          // Fallback para mock de desenvolvimento (alu-01, alu-02, etc.)
-          const fallback = MOCK_ALUNOS.find(
-            (a) => a.id === id || a.tenant_member_id === id
-          );
-          setAluno(fallback ?? null);
+          setAluno(null);
         }
       })
       .catch(() => {
         if (!isMounted) return;
-        const fallback = MOCK_ALUNOS.find(
-          (a) => a.id === id || a.tenant_member_id === id
-        );
-        setAluno(fallback ?? null);
+        setAluno(null);
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -188,7 +175,7 @@ export function useAlunoDetalhes(id: string) {
     return () => {
       isMounted = false;
     };
-  }, [id, refreshKey]);
+  }, [id, currentUserId, refreshKey]);
 
   // 4. Carregar histórico de chamadas das turmas do aluno
   useEffect(() => {
@@ -237,10 +224,8 @@ export function useAlunoDetalhes(id: string) {
 
   // Histórico de chamadas consolidado
   const chamadas = useMemo<ChamadaHistoricoItem[]>(() => {
-    if (apiChamadas !== null) return apiChamadas;
-    if (!aluno) return [];
-    return getMockChamadasHistorico(aluno);
-  }, [apiChamadas, aluno]);
+    return apiChamadas ?? [];
+  }, [apiChamadas]);
 
   // Chamadas filtradas por presença / falta
   const filteredChamadas = useMemo(() => {
@@ -270,9 +255,7 @@ export function useAlunoDetalhes(id: string) {
     );
 
     if (userRole === "professor") {
-      return unEnrolled.filter(
-        (t) => t.is_mine || t.professor_name.includes(CURRENT_PROFESSOR_ID)
-      );
+      return unEnrolled.filter((t) => t.is_mine);
     }
     return unEnrolled;
   }, [aluno, allInstitutionTurmas, userRole]);

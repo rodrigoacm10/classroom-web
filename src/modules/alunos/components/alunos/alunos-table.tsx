@@ -10,7 +10,6 @@ import {
 } from "@/components/icons";
 import { attendanceColor, attendanceBarColor, getInitials } from "@/lib/utils";
 import type { AlunoItem, UserRoleScope } from "../../types";
-import { CURRENT_PROFESSOR_ID } from "../../data/mock-alunos";
 
 export interface AlunosTableProps {
   alunos: AlunoItem[];
@@ -87,7 +86,7 @@ export function AlunosTable({
 
               // Filtrar turmas para exibição rápida de chips
               const displayTurmas = isProfessor
-                ? aluno.turmas.filter((t) => t.professor_id === CURRENT_PROFESSOR_ID)
+                ? aluno.turmas.filter((t) => t.is_mine)
                 : aluno.turmas;
 
               return (

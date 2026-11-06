@@ -26,6 +26,7 @@ export interface AlunoTurma {
   total_absent: number;
   avg_distance_meters: number;
   status: "regular" | "at_risk";
+  is_mine?: boolean;
 }
 
 export interface AlunoItem {
