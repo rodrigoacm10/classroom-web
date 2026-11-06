@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   listSubjectClasses,
+  getSubjectClass,
   listAllRooms,
   openAttendanceSession,
   generateClassFrequencyReport,
@@ -15,6 +16,22 @@ import { DURATION_OPTIONS, type Duration } from "../types";
 
 export function useNovaChamada() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Obtém o ID da turma via query param (?turma=..., ?turmaId=..., ?classId=..., etc.)
+  const queryTurmaId =
+    searchParams?.get("turma") ||
+    searchParams?.get("turmaId") ||
+    searchParams?.get("turma_id") ||
+    searchParams?.get("classId") ||
+    searchParams?.get("subjectClassId") ||
+    (typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("turma") ||
+      new URLSearchParams(window.location.search).get("turmaId") ||
+      new URLSearchParams(window.location.search).get("turma_id") ||
+      new URLSearchParams(window.location.search).get("classId") ||
+      new URLSearchParams(window.location.search).get("subjectClassId")
+      : null);
 
   // Estados dos formulários e seleções
   const [duration, setDuration] = useState<Duration>(15);
@@ -120,15 +137,24 @@ export function useNovaChamada() {
           setClasses(items);
           setClassesTotal(classesRes.value.total ?? items.length);
 
-          // Verifica se há turma passada via query param na URL (ex: ?turmaId=... ou ?classId=...)
-          if (typeof window !== "undefined") {
-            const urlParams = new URLSearchParams(window.location.search);
-            const queryId = urlParams.get("turmaId") || urlParams.get("classId");
-            if (queryId) {
-              const matched = items.find((c) => c.id === queryId);
-              if (matched) {
-                setSelectedClass(matched);
-                setSelectedRoomId(matched.room_id ?? null);
+          // Verifica se há turma passada via query param na URL (?turma=..., ?turmaId=..., etc.)
+          if (queryTurmaId) {
+            const matched = items.find((c) => c.id === queryTurmaId);
+            if (matched) {
+              setSelectedClass(matched);
+              setSelectedRoomId(matched.room_id ?? null);
+            } else {
+              try {
+                const specificClass = await getSubjectClass(queryTurmaId);
+                if (specificClass && isMounted) {
+                  setSelectedClass(specificClass);
+                  setSelectedRoomId(specificClass.room_id ?? null);
+                  setClasses((prev) =>
+                    prev.some((c) => c.id === specificClass.id) ? prev : [specificClass, ...prev]
+                  );
+                }
+              } catch {
+                // Silencioso se não encontrar
               }
             }
           }
@@ -158,7 +184,40 @@ export function useNovaChamada() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [queryTurmaId]);
+
+  // Sincroniza turma selecionada se queryTurmaId mudar após o carregamento inicial
+  useEffect(() => {
+    if (!queryTurmaId || loading || selectedClass?.id === queryTurmaId) return;
+    let isMounted = true;
+
+    async function syncTurmaFromQuery() {
+      const matched = classes.find((c) => c.id === queryTurmaId);
+      if (matched) {
+        setSelectedClass(matched);
+        setSelectedRoomId(matched.room_id ?? null);
+      } else {
+        try {
+          const specificClass = await getSubjectClass(queryTurmaId!);
+          if (specificClass && isMounted) {
+            setSelectedClass(specificClass);
+            setSelectedRoomId(specificClass.room_id ?? null);
+            setClasses((prev) =>
+              prev.some((c) => c.id === specificClass.id) ? prev : [specificClass, ...prev]
+            );
+          }
+        } catch {
+          // Silencioso se não encontrar
+        }
+      }
+    }
+
+    syncTurmaFromQuery();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [queryTurmaId, classes, loading, selectedClass?.id]);
 
   // 2. Busca de turmas via Query na API com Debounce de 300ms
   useEffect(() => {
