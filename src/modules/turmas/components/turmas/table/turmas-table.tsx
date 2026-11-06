@@ -17,8 +17,11 @@ export interface TurmasTableProps {
   totalPages: number;
   totalClasses: number;
   pageSize: number;
+  isAdmin?: boolean;
   onPageChange: (page: number) => void;
   onClearFilters: () => void;
+  onToggleActive?: (turma: SubjectClassItem) => void;
+  onDelete?: (turma: SubjectClassItem) => void;
 }
 
 export function TurmasTable({
@@ -30,22 +33,25 @@ export function TurmasTable({
   totalPages,
   totalClasses,
   pageSize,
+  isAdmin = false,
   onPageChange,
   onClearFilters,
+  onToggleActive,
+  onDelete,
 }: TurmasTableProps) {
   const hasFilters = Boolean(searchQuery || statusFilter !== "all");
 
   return (
     <div className="flex-1 px-8 py-6 lg:px-10">
-      <div className="overflow-hidden rounded-xl border border-border bg-white shadow-xs">
+      <div className="rounded-xl border border-border bg-white shadow-xs">
         {/* Table Header */}
-        <div className="grid grid-cols-12 items-center border-b border-border bg-[#FAFAFA] px-5 py-3 font-sans text-caption font-bold uppercase tracking-caps text-muted">
-          <div className="col-span-12 md:col-span-4">TURMA / DISCIPLINA</div>
+        <div className="grid grid-cols-12 items-center rounded-t-xl border-b border-border bg-[#FAFAFA] px-5 py-3 font-sans text-caption font-bold uppercase tracking-caps text-muted">
+          <div className="col-span-12 md:col-span-3">TURMA / DISCIPLINA</div>
           <div className="hidden md:col-span-2 md:block">DOCENTE</div>
           <div className="hidden md:col-span-2 md:block">SALA FÍSICA</div>
-          <div className="col-span-4 md:col-span-1 text-center md:text-left">ALUNOS</div>
+          <div className="col-span-3 md:col-span-1 text-center md:text-left">ALUNOS</div>
           <div className="col-span-4 md:col-span-2">FREQUÊNCIA</div>
-          <div className="col-span-4 md:col-span-1 text-right">STATUS</div>
+          <div className="col-span-5 md:col-span-2 text-right">STATUS & AÇÕES</div>
         </div>
 
         {/* Table Body */}
@@ -55,8 +61,15 @@ export function TurmasTable({
           <TableEmpty hasFilters={hasFilters} onClearFilters={onClearFilters} />
         ) : (
           <div className="divide-y divide-border">
-            {classes.map((item) => (
-              <TurmaRow key={item.id} item={item} />
+            {classes.map((item, index) => (
+              <TurmaRow
+                key={item.id}
+                item={item}
+                isAdmin={isAdmin}
+                openUpward={classes.length > 2 ? index >= classes.length - 2 : true}
+                onToggleActive={onToggleActive}
+                onDelete={onDelete}
+              />
             ))}
           </div>
         )}
