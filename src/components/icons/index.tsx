@@ -67,6 +67,26 @@ export function ChevronDownIcon({ className = "", size = 16 }: IconProps) {
   );
 }
 
+export function ChevronUpIcon({ className = "", size = 16 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${className}`}
+    >
+      <path
+        d="M4 10l4-4 4 4"
+        stroke="var(--color-muted)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function SearchIcon({ className = "", size = 14 }: IconProps) {
   return (
     <svg
@@ -591,6 +611,8 @@ export function PencilIcon({ className = "", size = 14 }: IconProps) {
     </svg>
   );
 }
+
+export const EditIcon = PencilIcon;
 
 export function TrashIcon({ className = "", size = 14 }: IconProps) {
   return (
