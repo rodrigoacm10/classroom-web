@@ -71,6 +71,7 @@ export type TenantMemberResponse = {
 
 export type ListTenantMembersParams = {
   role?: "admin" | "professor" | "aluno" | "coordenador";
+  exclude_role?: "admin" | "professor" | "aluno" | "coordenador";
   search?: string;
   subject_class_id?: string;
   page?: number;
@@ -146,7 +147,7 @@ export async function getStudentsMetrics(): Promise<StudentsMetricsResponse> {
 /**
  * Lista os membros de uma instituição específica (/tenants/{tenantId}/members).
  * Retorna campos flat incluindo name e email do usuário.
- * Requer permissão de ADMIN ou COORDENADOR.
+ * Requer permissão de ADMIN, COORDENADOR ou PROFESSOR.
  */
 export async function listTenantMembers(
   tenantId: string,
@@ -154,6 +155,7 @@ export async function listTenantMembers(
 ): Promise<TenantMembersPageResponse> {
   const query = new URLSearchParams();
   if (params.role) query.set("role", params.role);
+  if (params.exclude_role) query.set("exclude_role", params.exclude_role);
   if (params.search) query.set("search", params.search);
   if (params.subject_class_id) query.set("subject_class_id", params.subject_class_id);
   if (params.page !== undefined) query.set("page", String(params.page));
@@ -161,6 +163,69 @@ export async function listTenantMembers(
 
   const qs = query.toString() ? `?${query.toString()}` : "";
   return api<TenantMembersPageResponse>(`/tenants/${tenantId}/members${qs}`);
+}
+
+/**
+ * Lista os membros institucionais da instituição ativa no JWT (/members).
+ * Permite filtrar por papel ou excluir 'aluno'.
+ */
+export async function listMembers(
+  params: ListTenantMembersParams = {}
+): Promise<TenantMembersPageResponse> {
+  const query = new URLSearchParams();
+  if (params.role) query.set("role", params.role);
+  if (params.exclude_role) query.set("exclude_role", params.exclude_role);
+  if (params.search) query.set("search", params.search);
+  if (params.subject_class_id) query.set("subject_class_id", params.subject_class_id);
+  if (params.page !== undefined) query.set("page", String(params.page));
+  if (params.page_size !== undefined) query.set("page_size", String(params.page_size));
+
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return api<TenantMembersPageResponse>(`/members${qs}`);
+}
+
+export type MembersMetricsResponse = {
+  total_members: number;
+  professors_count: number;
+  coordinators_count: number;
+  admins_count: number;
+  management_count: number;
+  assigned_classes_count: number;
+};
+
+/**
+ * Consulta os KPIs consolidados dos membros institucionais no tenant ativo (/members/metrics).
+ */
+export async function getMembersMetrics(): Promise<MembersMetricsResponse> {
+  return api<MembersMetricsResponse>("/members/metrics");
+}
+
+/**
+ * Atualiza o papel (role) de um membro da instituição (/tenants/{tenantId}/members/{userId}/role).
+ * Requer papel de ADMIN.
+ */
+export async function updateTenantMemberRole(
+  tenantId: string,
+  userId: string,
+  role: "admin" | "professor" | "coordenador" | "aluno"
+): Promise<TenantMemberResponse> {
+  return api<TenantMemberResponse>(`/tenants/${tenantId}/members/${userId}/role`, {
+    method: "PATCH",
+    body: { role },
+  });
+}
+
+/**
+ * Remove um membro da instituição (soft delete) (/tenants/{tenantId}/members/{userId}).
+ * Requer papel de ADMIN.
+ */
+export async function removeTenantMember(
+  tenantId: string,
+  userId: string
+): Promise<TenantMemberResponse> {
+  return api<TenantMemberResponse>(`/tenants/${tenantId}/members/${userId}`, {
+    method: "DELETE",
+  });
 }
 
 export type InviteStatusResponse = {
@@ -400,6 +465,36 @@ export async function revokeInvite(inviteId: string): Promise<InviteStatusRespon
   });
 }
 
+/**
+ * Ativa uma instituição/tenant (/tenants/{tenantId}/activate).
+ * Requer papel de ADMIN.
+ */
+export async function activateTenant(tenantId: string): Promise<TenantResponse> {
+  return api<TenantResponse>(`/tenants/${tenantId}/activate`, {
+    method: "PATCH",
+  });
+}
+
+/**
+ * Desativa/suspende temporariamente uma instituição/tenant (/tenants/{tenantId}/deactivate).
+ * Requer papel de ADMIN.
+ */
+export async function deactivateTenant(tenantId: string): Promise<TenantResponse> {
+  return api<TenantResponse>(`/tenants/${tenantId}/deactivate`, {
+    method: "PATCH",
+  });
+}
+
+/**
+ * Remove (soft-delete) uma instituição/tenant (/tenants/{tenantId}).
+ * Requer papel de ADMIN.
+ */
+export async function deleteTenant(tenantId: string): Promise<TenantResponse> {
+  return api<TenantResponse>(`/tenants/${tenantId}`, {
+    method: "DELETE",
+  });
+}
+
 export const tenantService = {
   listMyTenants,
   switchTenant,
@@ -415,6 +510,9 @@ export const tenantService = {
   getInvitesMetrics,
   resendInvite,
   revokeInvite,
+  activateTenant,
+  deactivateTenant,
+  deleteTenant,
   getStudentAttendanceHistory,
 };
 
