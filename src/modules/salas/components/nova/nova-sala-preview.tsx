@@ -1,12 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   CopyIcon,
   ExternalLinkIcon,
   LocationPinIcon,
   RadiusIcon,
 } from "@/components/icons";
+import { GeofenceMap } from "@/components/map";
 import { formatCoord, type RadiusLabelInfo } from "@/lib/utils";
 import { RoomAvatar } from "../salas/room-card";
 
@@ -39,6 +40,8 @@ export function NovaSalaPreview({
   copied,
   onCopyCoords,
 }: NovaSalaPreviewProps) {
+  const [viewMode, setViewMode] = useState<"map" | "radar">("map");
+
   return (
     <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto bg-surface p-5">
       {/* Header "Prévia em tempo real" */}
@@ -131,57 +134,102 @@ export function NovaSalaPreview({
       <div className="flex min-h-0 flex-1 gap-3.5">
         {/* Geofence Map Simulation Card */}
         <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-border bg-paper shadow-xs">
-          {/* Mapa estilizado com visualização de satélite/radar */}
-          <div
-            className="relative flex flex-1 items-center justify-center overflow-hidden min-h-[220px]"
-            style={{
-              background: "linear-gradient(135deg, #1c2229 0%, #13181e 50%, #0d1116 100%)",
-            }}
-          >
-            {/* Linhas de grade de radar/geofence */}
-            <div
-              className="absolute inset-0 opacity-15 pointer-events-none"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle, #ffffff 1px, transparent 1px), linear-gradient(to right, #ffffff11 1px, transparent 1px), linear-gradient(to bottom, #ffffff11 1px, transparent 1px)",
-                backgroundSize: "24px 24px, 48px 48px, 48px 48px",
-              }}
-            />
-
-            {/* Círculo do Geofence dinâmico baseado no raio selecionado */}
-            <div
-              className="relative flex items-center justify-center transition-all duration-300"
-              style={{
-                width: `${Math.min(Math.max(90 + (toleranceRadius / 500) * 150, 90), 240)}px`,
-                height: `${Math.min(Math.max(90 + (toleranceRadius / 500) * 150, 90), 240)}px`,
-              }}
-            >
-              {/* Anel externo pulsante com cor de acento */}
-              <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#FFC40099] bg-[#FFC4001F] animate-pulse" />
-
-              {/* Anel intermediário translúcido */}
-              <div className="absolute inset-4 rounded-full border border-[#FFC40040] bg-[#FFC40010]" />
-
-              {/* Pin central de localização */}
-              <div
-                className="relative z-10 flex h-7 w-7 items-center justify-center rounded-tl-full rounded-tr-full rounded-br-full bg-accent border-[3px] border-solid border-ink shadow-[0px_4px_12px_rgba(0,0,0,0.5)] origin-center transition-transform hover:scale-110"
-                style={{ rotate: "-45deg" }}
+          {/* Header com toggle de visualização */}
+          <div className="flex items-center justify-between border-b border-border bg-surface/50 px-4 py-2">
+            <span className="text-[11px] font-bold uppercase tracking-caps text-muted">
+              {viewMode === "map" ? "Mapa Geográfico" : "Radar de Geofence"}
+            </span>
+            <div className="flex rounded-md border border-border bg-paper p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode("map")}
+                className={`rounded px-2 py-0.5 text-[11px] font-semibold transition-colors cursor-pointer ${
+                  viewMode === "map"
+                    ? "bg-ink text-white"
+                    : "text-muted hover:text-ink"
+                }`}
               >
-                <div className="h-2 w-2 rounded-full bg-ink" />
-              </div>
-
-              {/* Badge de metragem central sobre o anel */}
-              <div className="absolute -bottom-3 rounded-full bg-ink/90 border border-white/20 px-2 py-0.5 text-[10px] font-mono font-bold text-accent shadow-md">
-                Raio: {toleranceRadius}m
-              </div>
-            </div>
-
-            {/* Indicador de bússola/orientação no canto do mapa */}
-            <div className="absolute top-3 right-3 flex items-center gap-1 rounded-md bg-black/40 border border-white/10 px-2 py-1 text-[10px] font-mono text-white/70 backdrop-blur-xs">
-              <span className="font-bold text-accent">N</span>
-              <span>0°</span>
+                Mapa
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("radar")}
+                className={`rounded px-2 py-0.5 text-[11px] font-semibold transition-colors cursor-pointer ${
+                  viewMode === "radar"
+                    ? "bg-ink text-white"
+                    : "text-muted hover:text-ink"
+                }`}
+              >
+                Radar
+              </button>
             </div>
           </div>
+
+          {viewMode === "map" ? (
+            <div className="relative flex-1 min-h-[220px] w-full overflow-hidden bg-surface">
+              <GeofenceMap
+                latitude={isLatValid && isLngValid ? latNum : null}
+                longitude={isLatValid && isLngValid ? lngNum : null}
+                radius={toleranceRadius}
+                interactive={true}
+                scrollWheelZoom={false}
+                placeholderText="Aguardando coordenadas GPS válidas..."
+                className="w-full h-full min-h-[220px]"
+              />
+            </div>
+          ) : (
+            /* Mapa estilizado com visualização de satélite/radar */
+            <div
+              className="relative flex flex-1 items-center justify-center overflow-hidden min-h-[220px]"
+              style={{
+                background: "linear-gradient(135deg, #1c2229 0%, #13181e 50%, #0d1116 100%)",
+              }}
+            >
+              {/* Linhas de grade de radar/geofence */}
+              <div
+                className="absolute inset-0 opacity-15 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(circle, #ffffff 1px, transparent 1px), linear-gradient(to right, #ffffff11 1px, transparent 1px), linear-gradient(to bottom, #ffffff11 1px, transparent 1px)",
+                  backgroundSize: "24px 24px, 48px 48px, 48px 48px",
+                }}
+              />
+
+              {/* Círculo do Geofence dinâmico baseado no raio selecionado */}
+              <div
+                className="relative flex items-center justify-center transition-all duration-300"
+                style={{
+                  width: `${Math.min(Math.max(90 + (toleranceRadius / 500) * 150, 90), 240)}px`,
+                  height: `${Math.min(Math.max(90 + (toleranceRadius / 500) * 150, 90), 240)}px`,
+                }}
+              >
+                {/* Anel externo pulsante com cor de acento */}
+                <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#FFC40099] bg-[#FFC4001F] animate-pulse" />
+
+                {/* Anel intermediário translúcido */}
+                <div className="absolute inset-4 rounded-full border border-[#FFC40040] bg-[#FFC40010]" />
+
+                {/* Pin central de localização */}
+                <div
+                  className="relative z-10 flex h-7 w-7 items-center justify-center rounded-tl-full rounded-tr-full rounded-br-full bg-accent border-[3px] border-solid border-ink shadow-[0px_4px_12px_rgba(0,0,0,0.5)] origin-center transition-transform hover:scale-110"
+                  style={{ rotate: "-45deg" }}
+                >
+                  <div className="h-2 w-2 rounded-full bg-ink" />
+                </div>
+
+                {/* Badge de metragem central sobre o anel */}
+                <div className="absolute -bottom-3 rounded-full bg-ink/90 border border-white/20 px-2 py-0.5 text-[10px] font-mono font-bold text-accent shadow-md">
+                  Raio: {toleranceRadius}m
+                </div>
+              </div>
+
+              {/* Indicador de bússola/orientação no canto do mapa */}
+              <div className="absolute top-3 right-3 flex items-center gap-1 rounded-md bg-black/40 border border-white/10 px-2 py-1 text-[10px] font-mono text-white/70 backdrop-blur-xs">
+                <span className="font-bold text-accent">N</span>
+                <span>0°</span>
+              </div>
+            </div>
+          )}
 
           {/* Informações detalhadas do Geofence abaixo do mapa */}
           <div className="flex shrink-0 flex-col gap-2 p-4 bg-paper">
