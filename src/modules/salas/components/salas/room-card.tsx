@@ -17,6 +17,7 @@ import {
   getGoogleMapsUrl,
   getRoomAvatarColor,
 } from "@/lib/utils";
+import { GeofenceMap } from "@/components/map";
 import type { Room } from "@/services/rooms";
 
 export function RoomAvatar({ name }: { name: string }) {
@@ -145,8 +146,17 @@ export function RoomCard({ room, onDelete }: RoomCardProps) {
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-border mx-6" />
+      {/* Mini-mapa preview da sala */}
+      <div className="relative h-28 w-full border-y border-border bg-surface overflow-hidden">
+        <GeofenceMap
+          latitude={room.latitude}
+          longitude={room.longitude}
+          radius={room.tolerance_radius_meters}
+          interactive={false}
+          scrollWheelZoom={false}
+          className="h-28 w-full"
+        />
+      </div>
 
       {/* Metrics row */}
       <div className="grid grid-cols-2 gap-0 divide-x divide-border px-0">

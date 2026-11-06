@@ -23,7 +23,7 @@ export function TablePagination({
   const end = Math.min(currentPage * pageSize, totalClasses);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between border-t border-border bg-[#FAFAFA] px-5 py-3 gap-3">
+    <div className="flex flex-col sm:flex-row items-center justify-between rounded-b-xl border-t border-border bg-[#FAFAFA] px-5 py-3 gap-3">
       <div className="text-caption text-muted">
         Mostrando <strong className="font-semibold text-ink">{start}</strong> a{" "}
         <strong className="font-semibold text-ink">{end}</strong> de{" "}

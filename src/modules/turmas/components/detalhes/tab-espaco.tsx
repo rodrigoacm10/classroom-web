@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { MapPinIcon } from "@/components/icons";
+import { GeofenceMap } from "@/components/map";
 import type { Room } from "@/services/rooms";
 import type { SubjectClassItem } from "@/services/subject-classes";
 
@@ -43,6 +44,19 @@ export function TabEspaco({ turma, room }: TabEspacoProps) {
               </div>
             </div>
           </div>
+
+          {room && (
+            <div className="h-44 w-full overflow-hidden rounded-xl border border-border">
+              <GeofenceMap
+                latitude={room.latitude}
+                longitude={room.longitude}
+                radius={room.tolerance_radius_meters ?? 50}
+                interactive={true}
+                scrollWheelZoom={false}
+                className="h-full w-full"
+              />
+            </div>
+          )}
 
           <div className="rounded-xl border border-border bg-surface/50 p-4 space-y-2 text-label text-ink">
             <div className="flex justify-between border-b border-border/70 pb-2">

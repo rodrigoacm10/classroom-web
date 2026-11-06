@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ApiError,
   listMyTenants,
+  getMyProfile,
   setStoredToken,
   switchTenant,
   type MyTenantResponse,
@@ -22,6 +23,7 @@ const roleLabels: Record<MyTenantResponse["role"], string> = {
 export function TenantPicker() {
   const router = useRouter();
   const [tenants, setTenants] = useState<MyTenantResponse[]>([]);
+  const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [switchingId, setSwitchingId] = useState<string | null>(null);
@@ -32,20 +34,20 @@ export function TenantPicker() {
 
     async function fetchTenants() {
       try {
-        const fetched = await listMyTenants();
+        const [fetched, profile] = await Promise.all([
+          listMyTenants(),
+          getMyProfile().catch(() => null),
+        ]);
         if (!isMounted) return;
         const active = fetched.filter((t) => t.active && !t.deleted);
         if (active.length === 0) {
           router.replace("/tenants/nova");
           return;
         }
-        if (active.length === 1) {
-          const switched = await switchTenant(active[0].id);
-          setStoredToken(switched.access_token);
-          router.replace("/dashboard");
-          return;
-        }
         setTenants(active);
+        if (profile?.tenant_id) {
+          setCurrentTenantId(profile.tenant_id);
+        }
       } catch {
         if (isMounted) {
           router.replace("/login");
@@ -128,9 +130,16 @@ export function TenantPicker() {
             {/* Top row: name + role badge */}
             <div className="flex w-full items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
-                <span className="text-heading/heading font-bold tracking-tight text-ink">
-                  {tenant.name}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-heading/heading font-bold tracking-tight text-ink">
+                    {tenant.name}
+                  </span>
+                  {tenant.id === currentTenantId && (
+                    <span className="rounded-full bg-success-surface border border-success/30 px-2 py-0.5 font-sans text-[11px] font-semibold text-success">
+                      Sessão ativa
+                    </span>
+                  )}
+                </div>
                 <span className="font-mono text-caption/caption text-muted">
                   {tenant.slug}
                 </span>
@@ -200,17 +209,39 @@ export function TenantPicker() {
         ) : null}
       </div>
 
-      {/* Back to login */}
-      <Link
-        href="/login"
-        className={buttonClass({
-          variant: "outline",
-          size: "md",
-          className: "mt-3 self-start",
-        })}
-      >
-        Voltar ao login
-      </Link>
+      {/* Navigation footer */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        {currentTenantId ? (
+          <Link
+            href="/dashboard"
+            className={buttonClass({
+              variant: "outline",
+              size: "md",
+            })}
+          >
+            ← Voltar ao painel
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className={buttonClass({
+              variant: "outline",
+              size: "md",
+            })}
+          >
+            Voltar ao login
+          </Link>
+        )}
+
+        {currentTenantId ? (
+          <Link
+            href="/login"
+            className="text-label text-muted hover:text-ink transition-colors"
+          >
+            Entrar com outra conta
+          </Link>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { NovaChamada } from "@/modules/chamadas";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function NovaChamadaPage() {
-  return <NovaChamada />;
+  return (
+    <Suspense fallback={null}>
+      <NovaChamada />
+    </Suspense>
+  );
 }

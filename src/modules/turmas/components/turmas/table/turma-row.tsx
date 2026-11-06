@@ -6,12 +6,23 @@ import { Avatar } from "@/components/global";
 import { UserIcon, MapPinIcon, RadioLiveIcon } from "@/components/icons";
 import { attendanceColor, attendanceBarColor } from "@/lib/utils";
 import type { SubjectClassItem } from "@/lib/api";
+import { TurmaActionsMenu } from "../turma-actions-menu";
 
 export interface TurmaRowProps {
   item: SubjectClassItem;
+  isAdmin?: boolean;
+  openUpward?: boolean;
+  onToggleActive?: (turma: SubjectClassItem) => void;
+  onDelete?: (turma: SubjectClassItem) => void;
 }
 
-export function TurmaRow({ item }: TurmaRowProps) {
+export function TurmaRow({
+  item,
+  isAdmin = false,
+  openUpward = false,
+  onToggleActive,
+  onDelete,
+}: TurmaRowProps) {
   const router = useRouter();
   const attendancePct = Math.round((item.attendance_rate ?? 0) * 100);
 
@@ -21,7 +32,7 @@ export function TurmaRow({ item }: TurmaRowProps) {
       className="group grid grid-cols-12 items-center px-5 py-4 transition-colors hover:bg-surface/60 cursor-pointer"
     >
       {/* Turma / Disciplina */}
-      <div className="col-span-12 md:col-span-4 flex items-center gap-3.5 pr-2">
+      <div className="col-span-12 md:col-span-3 flex items-center gap-3.5 pr-2">
         <Avatar name={item.name || item.discipline_name || ""} />
         <div className="flex min-w-0 flex-col">
           <span className="font-semibold text-ink text-body group-hover:text-accent transition-colors truncate">
@@ -54,7 +65,7 @@ export function TurmaRow({ item }: TurmaRowProps) {
       </div>
 
       {/* Alunos */}
-      <div className="col-span-4 md:col-span-1 text-center md:text-left">
+      <div className="col-span-3 md:col-span-1 text-center md:text-left">
         <span className="font-mono text-body font-semibold text-ink">
           {item.student_count}
         </span>
@@ -77,12 +88,12 @@ export function TurmaRow({ item }: TurmaRowProps) {
         </div>
       </div>
 
-      {/* Status */}
-      <div className="col-span-4 md:col-span-1 flex items-center justify-end">
+      {/* Status & Ações */}
+      <div className="col-span-5 md:col-span-2 flex items-center justify-end gap-2.5">
         {item.has_active_session ? (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-surface border border-accent/40 px-2.5 py-1 text-caption font-bold text-ink animate-pulse">
             <RadioLiveIcon size={12} />
-            <span>AO VIVO</span>
+            <span className="hidden sm:inline">AO VIVO</span>
           </span>
         ) : item.active ? (
           <span className="inline-flex items-center rounded-full bg-success-surface px-2.5 py-0.5 text-caption font-semibold text-success">
@@ -93,6 +104,15 @@ export function TurmaRow({ item }: TurmaRowProps) {
             Inativa
           </span>
         )}
+
+        {/* Menu de Ações (3 pontinhos) */}
+        <TurmaActionsMenu
+          turma={item}
+          isAdmin={isAdmin}
+          openUpward={openUpward}
+          onToggleActive={(t) => onToggleActive?.(t)}
+          onDelete={(t) => onDelete?.(t)}
+        />
       </div>
     </div>
   );

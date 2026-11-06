@@ -13,7 +13,7 @@ export interface TableEmptyProps {
 export function TableEmpty({ hasFilters, onClearFilters }: TableEmptyProps) {
   if (hasFilters) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+      <div className="flex flex-col items-center justify-center py-16 text-center px-4 rounded-b-xl">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface text-muted mb-3">
           <SearchIcon size={22} />
         </div>
@@ -35,7 +35,7 @@ export function TableEmpty({ hasFilters, onClearFilters }: TableEmptyProps) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+    <div className="flex flex-col items-center justify-center py-16 text-center px-4 rounded-b-xl">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface text-muted mb-3">
         <AttendanceIcon size={22} />
       </div>

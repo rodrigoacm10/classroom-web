@@ -103,6 +103,7 @@ export function ChamadaAoVivo({ subjectClassId, sessionId }: ChamadaAoVivoProps)
         onClose={() => setReviewingStudent(null)}
         subjectClassId={subjectClassId}
         sessionId={sessionId}
+        session={session}
         studentItem={reviewingStudent}
         onReviewSuccess={(recordId, decision) => {
           updateRosterRecordStatus(recordId, decision);

@@ -9,7 +9,6 @@ import {
 } from "@/components/icons";
 import { attendanceColor, attendanceBarColor } from "@/lib/utils";
 import type { AlunoTurma, UserRoleScope } from "../../types";
-import { CURRENT_PROFESSOR_ID } from "../../data/mock-alunos";
 
 export interface TabTurmasProps {
   turmas: AlunoTurma[];
@@ -67,7 +66,7 @@ export function TabTurmas({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {turmas.map((turma) => {
             const pct = Math.round(turma.attendance_rate * 100);
-            const isMine = turma.professor_id === CURRENT_PROFESSOR_ID;
+            const isMine = Boolean(turma.is_mine);
             const userCanUnenroll = canUnenroll(turma);
 
             return (

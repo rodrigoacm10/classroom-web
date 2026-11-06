@@ -5,6 +5,9 @@ import {
   listSubjectClasses,
   getSubjectClassMetrics,
   listActiveAttendanceSessions,
+  getMyProfile,
+  updateSubjectClass,
+  deleteSubjectClass,
   type SubjectClassItem,
   type SubjectClassMetrics,
   type ActiveAttendanceSessionResponse,
@@ -38,6 +41,40 @@ export function useTurmas(options: UseTurmasOptions = {}) {
   const [statusFilter, setStatusFilter] = useState<TurmasStatusFilter>("all");
   const [sortOption, setSortOption] = useState<TurmasSortOption>("name_asc");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Perfil do usuário logado (para permissões de admin)
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  // Modal de exclusão
+  const [turmaToDelete, setTurmaToDelete] = useState<SubjectClassItem | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Toast de feedback
+  const [toastMessage, setToastMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  // Limpa toast após 4s
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  // Carrega papel do usuário
+  useEffect(() => {
+    let isMounted = true;
+    getMyProfile()
+      .then((p) => {
+        if (isMounted) setUserRole(p.role);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Debounce na busca para evitar requisições a cada tecla digitada
   useEffect(() => {
@@ -177,6 +214,61 @@ export function useTurmas(options: UseTurmasOptions = {}) {
     setCurrentPage(1);
   }, []);
 
+  const handleToggleActive = useCallback(async (turma: SubjectClassItem) => {
+    const nextActive = !turma.active;
+    try {
+      await updateSubjectClass(turma.id, { active: nextActive });
+      setClasses((prev) =>
+        prev.map((c) => (c.id === turma.id ? { ...c, active: nextActive } : c))
+      );
+      setToastMessage({
+        type: "success",
+        text: nextActive
+          ? `Turma "${turma.name}" ativada para chamadas.`
+          : `Turma "${turma.name}" desativada (pausada).`,
+      });
+    } catch (err) {
+      setToastMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Erro ao alterar status da turma.",
+      });
+    }
+  }, []);
+
+  const handleOpenDeleteModal = useCallback((turma: SubjectClassItem) => {
+    setTurmaToDelete(turma);
+    setIsDeleteModalOpen(true);
+  }, []);
+
+  const handleCloseDeleteModal = useCallback(() => {
+    if (isDeleting) return;
+    setIsDeleteModalOpen(false);
+    setTurmaToDelete(null);
+  }, [isDeleting]);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!turmaToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteSubjectClass(turmaToDelete.id);
+      setClasses((prev) => prev.filter((c) => c.id !== turmaToDelete.id));
+      setTotalClasses((prev) => Math.max(0, prev - 1));
+      setToastMessage({
+        type: "success",
+        text: `Turma "${turmaToDelete.name}" excluída com sucesso.`,
+      });
+      setIsDeleteModalOpen(false);
+      setTurmaToDelete(null);
+    } catch (err) {
+      setToastMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Erro ao excluir turma.",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [turmaToDelete]);
+
   return {
     classes,
     totalClasses,
@@ -196,6 +288,15 @@ export function useTurmas(options: UseTurmasOptions = {}) {
     setCurrentPage,
     pageSize,
     kpis,
+    isAdmin: userRole === "admin",
+    isDeleteModalOpen,
+    turmaToDelete,
+    isDeleting,
+    toastMessage,
+    handleToggleActive,
+    handleOpenDeleteModal,
+    handleCloseDeleteModal,
+    handleConfirmDelete,
     handleClearFilters,
     refreshHeader: loadHeaderData,
     refreshClasses: fetchClasses,

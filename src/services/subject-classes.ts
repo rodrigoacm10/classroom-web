@@ -199,11 +199,45 @@ export async function listStudentSubjectClasses(
   return api<StudentSubjectClassResponse[]>(`/members/${memberId}/subject-classes`);
 }
 
+export type UpdateSubjectClassRequest = {
+  name?: string;
+  discipline_name?: string;
+  room_id?: string | null;
+  active?: boolean;
+};
+
+/**
+ * Atualiza parcialmente uma turma (PATCH /subject-classes/{id}).
+ */
+export async function updateSubjectClass(
+  subjectClassId: string,
+  data: UpdateSubjectClassRequest
+): Promise<SubjectClassResponse> {
+  return api<SubjectClassResponse>(`/subject-classes/${subjectClassId}`, {
+    method: "PATCH",
+    body: data,
+  });
+}
+
+/**
+ * Remove (soft-delete) uma turma (DELETE /subject-classes/{id}).
+ * Requer papel ADMIN.
+ */
+export async function deleteSubjectClass(
+  subjectClassId: string
+): Promise<void> {
+  return api<void>(`/subject-classes/${subjectClassId}`, {
+    method: "DELETE",
+  });
+}
+
 export const subjectClassService = {
   listSubjectClasses,
   getSubjectClassMetrics,
   getSubjectClass,
   createSubjectClass,
+  updateSubjectClass,
+  deleteSubjectClass,
   enrollStudent,
   deleteEnrollment,
   listEnrollments,
