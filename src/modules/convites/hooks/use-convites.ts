@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { MOCK_CONVITES, calculateInvitesKpis } from "../data/mock-convites";
-import { MOCK_TURMAS } from "@/modules/alunos/data/mock-alunos";
 import {
   listInvites,
   getInvitesMetrics,
@@ -23,7 +21,7 @@ import type {
 } from "../types";
 
 export function useConvites() {
-  const [allInvites, setAllInvites] = useState<InviteItem[]>(MOCK_CONVITES);
+  const [allInvites, setAllInvites] = useState<InviteItem[]>([]);
   const [apiKpis, setApiKpis] = useState<InvitesKpiData | null>(null);
   const [apiTotal, setApiTotal] = useState<number | null>(null);
   const [apiTurmas, setApiTurmas] = useState<TurmaOption[] | null>(null);
@@ -149,7 +147,8 @@ export function useConvites() {
         setIsApiActive(true);
       })
       .catch(() => {
-        // Se a API não responder ou não houver login, mantém dados mockados
+        setAllInvites([]);
+        setApiTotal(0);
         setIsApiActive(false);
       });
 
@@ -159,65 +158,21 @@ export function useConvites() {
   }, [statusFilter, roleFilter, searchQuery, sortOption, currentPage, pageSize, apiTurmas, refreshKey]);
 
   // KPIs consolidados
-  const kpis: InvitesKpiData = useMemo(() => {
-    if (apiKpis !== null) return apiKpis;
-    return calculateInvitesKpis(allInvites, 30);
-  }, [apiKpis, allInvites]);
+  const defaultKpis: InvitesKpiData = {
+    total: 0,
+    pending: 0,
+    accepted: 0,
+    expired: 0,
+    revoked: 0,
+    acceptanceRate: 0,
+  };
 
-  // Filtragem e ordenação (usado no modo mock/fallback)
-  const filteredInvites = useMemo(() => {
-    if (isApiActive) {
-      return allInvites;
-    }
+  const kpis: InvitesKpiData = apiKpis ?? defaultKpis;
 
-    let result = [...allInvites];
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (i) =>
-          i.email.toLowerCase().includes(q) ||
-          i.role.toLowerCase().includes(q) ||
-          i.subject_class_names?.some((c) => c.toLowerCase().includes(q))
-      );
-    }
-
-    if (statusFilter !== "all") {
-      result = result.filter((i) => i.status === statusFilter);
-    }
-
-    if (roleFilter !== "all") {
-      result = result.filter((i) => i.role === roleFilter);
-    }
-
-    result.sort((a, b) => {
-      switch (sortOption) {
-        case "newest":
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case "oldest":
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case "email_asc":
-          return a.email.localeCompare(b.email);
-        case "email_desc":
-          return b.email.localeCompare(a.email);
-        default:
-          return 0;
-      }
-    });
-
-    return result;
-  }, [allInvites, isApiActive, searchQuery, statusFilter, roleFilter, sortOption]);
-
-  // Paginação
-  const totalInvites = isApiActive && apiTotal !== null ? apiTotal : filteredInvites.length;
+  // Paginação via API
+  const totalInvites = apiTotal ?? allInvites.length;
   const totalPages = Math.max(1, Math.ceil(totalInvites / pageSize));
-  const paginatedInvites = useMemo(() => {
-    if (isApiActive) {
-      return allInvites;
-    }
-    const start = (currentPage - 1) * pageSize;
-    return filteredInvites.slice(start, start + pageSize);
-  }, [isApiActive, allInvites, filteredInvites, currentPage, pageSize]);
+  const paginatedInvites = allInvites;
 
   // Limpar filtros
   const handleClearFilters = () => {
@@ -241,30 +196,9 @@ export function useConvites() {
       });
       showFeedback(`Convite enviado com sucesso para ${data.email}!`, "success");
       refreshData();
-    } catch {
-      // Fallback local caso offline
-      const turmasFonte = apiTurmas ?? MOCK_TURMAS;
-      const selectedClassNames = turmasFonte
-        .filter((t) => data.subjectClassIds.includes(t.id))
-        .map((t) => t.name);
-
-      const newInvite: InviteItem = {
-        id: `inv-${Date.now()}`,
-        tenant_id: "ten-001",
-        tenant_name: "Universidade Locus",
-        email: data.email,
-        role: data.role,
-        status: "pending",
-        token: `loc_tok_${Math.random().toString(36).substring(2, 10)}${Date.now().toString(36)}`,
-        subject_class_ids: data.subjectClassIds,
-        subject_class_names: selectedClassNames,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        created_at: new Date().toISOString(),
-        invited_by_name: "Ana Professora (Admin)",
-      };
-
-      setAllInvites((prev) => [newInvite, ...prev]);
-      showFeedback(`Convite enviado com sucesso para ${data.email}!`, "success");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao enviar convite.";
+      showFeedback(msg, "info");
     } finally {
       setIsModalOpen(false);
     }
@@ -277,14 +211,7 @@ export function useConvites() {
       showFeedback(`Convite para ${invite.email} foi revogado.`, "info");
       refreshData();
     } catch {
-      setAllInvites((prev) =>
-        prev.map((i) =>
-          i.id === invite.id
-            ? { ...i, status: "revoked", revoked_at: new Date().toISOString() }
-            : i
-        )
-      );
-      showFeedback(`Convite para ${invite.email} foi revogado.`, "info");
+      showFeedback(`Não foi possível revogar o convite de ${invite.email}.`, "info");
     }
   };
 
@@ -295,19 +222,7 @@ export function useConvites() {
       showFeedback(`Convite renovado e reenviado para ${invite.email}!`, "success");
       refreshData();
     } catch {
-      setAllInvites((prev) =>
-        prev.map((i) =>
-          i.id === invite.id
-            ? {
-                ...i,
-                status: "pending",
-                expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                created_at: new Date().toISOString(),
-              }
-            : i
-        )
-      );
-      showFeedback(`Convite renovado e reenviado para ${invite.email}!`, "success");
+      showFeedback(`Falha ao reenviar convite para ${invite.email}.`, "info");
     }
   };
 
@@ -337,7 +252,7 @@ export function useConvites() {
     totalPages,
     totalInvites,
     invites: paginatedInvites,
-    availableTurmas: apiTurmas ?? MOCK_TURMAS,
+    availableTurmas: apiTurmas ?? [],
     isModalOpen,
     setIsModalOpen,
     handleClearFilters,
