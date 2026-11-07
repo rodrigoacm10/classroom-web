@@ -22,9 +22,9 @@ export default function LoginPage() {
       <LoginForm />
 
       <p className="mt-8 text-label/caption text-muted">
-        Recebeu um convite e ainda não tem senha?{" "}
+        Ainda não tem conta ou recebeu um convite?{" "}
         <Link href="/register" className={textLinkClass({ className: "font-semibold underline underline-offset-4" })}>
-          Veja como começar
+          Criar conta no Locus
         </Link>
       </p>
     </SecondaryPage>

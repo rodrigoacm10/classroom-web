@@ -1,0 +1,247 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  ApiError,
+  listMyTenants,
+  getMyProfile,
+  setStoredToken,
+  switchTenant,
+  type MyTenantResponse,
+} from "@/lib/api";
+import { buttonClass } from "@/components/ui/interactive";
+
+const roleLabels: Record<MyTenantResponse["role"], string> = {
+  admin: "Admin",
+  professor: "Professor",
+  aluno: "Aluno",
+  coordenador: "Coordenador",
+};
+
+export function TenantPicker() {
+  const router = useRouter();
+  const [tenants, setTenants] = useState<MyTenantResponse[]>([]);
+  const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [switchingId, setSwitchingId] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchTenants() {
+      try {
+        const [fetched, profile] = await Promise.all([
+          listMyTenants(),
+          getMyProfile().catch(() => null),
+        ]);
+        if (!isMounted) return;
+        const active = fetched.filter((t) => t.active && !t.deleted);
+        if (active.length === 0) {
+          router.replace("/tenants/nova");
+          return;
+        }
+        setTenants(active);
+        if (profile?.tenant_id) {
+          setCurrentTenantId(profile.tenant_id);
+        }
+      } catch {
+        if (isMounted) {
+          router.replace("/login");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchTenants();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
+
+  async function handleSelect(tenant: MyTenantResponse) {
+    if (!tenant.active || switchingId) return;
+
+    setError(null);
+    setSwitchingId(tenant.id);
+
+    try {
+      const result = await switchTenant(tenant.id);
+      setStoredToken(result.access_token);
+      setSuccess(true);
+      router.replace("/dashboard");
+    } catch (cause) {
+      if (cause instanceof ApiError) {
+        setError(cause.message);
+      } else {
+        setError(
+          "Não foi possível conectar à instituição. Verifique sua conexão e tente de novo.",
+        );
+      }
+      setSwitchingId(null);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="mt-9 flex items-center justify-center py-12">
+        <p className="text-label/caption text-muted">Carregando suas instituições…</p>
+      </div>
+    );
+  }
+
+  if (tenants.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-9 flex flex-col gap-3">
+      {tenants.map((tenant) => {
+        const isActive = tenant.active;
+        const isSwitching = switchingId === tenant.id;
+        const isDisabled = !isActive || (switchingId !== null && !isSwitching);
+
+        return (
+          <button
+            key={tenant.id}
+            type="button"
+            disabled={isDisabled}
+            aria-busy={isSwitching}
+            onClick={() => handleSelect(tenant)}
+            className={`
+              group relative flex w-full flex-col items-start gap-3 rounded-sm border
+              px-6 py-5 text-left transition-all duration-150 ease-out
+              ${
+                isActive
+                  ? "border-control-border bg-paper hover:border-ink hover:bg-surface focus-visible:border-ink"
+                  : "cursor-not-allowed border-border bg-surface opacity-60"
+              }
+              ${isSwitching ? "border-ink bg-surface" : ""}
+              ${isDisabled && isActive ? "pointer-events-none opacity-50" : ""}
+            `}
+          >
+            {/* Top row: name + role badge */}
+            <div className="flex w-full items-start justify-between gap-4">
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-heading/heading font-bold tracking-tight text-ink">
+                    {tenant.name}
+                  </span>
+                  {tenant.id === currentTenantId && (
+                    <span className="rounded-full bg-success-surface border border-success/30 px-2 py-0.5 font-sans text-[11px] font-semibold text-success">
+                      Sessão ativa
+                    </span>
+                  )}
+                </div>
+                <span className="font-mono text-caption/caption text-muted">
+                  {tenant.slug}
+                </span>
+              </div>
+
+              <span
+                className={`
+                  mt-0.5 shrink-0 rounded-sm px-2.5 py-1 font-mono text-caption/caption font-bold uppercase tracking-caps
+                  ${isActive ? "bg-accent text-ink" : "bg-border text-muted"}
+                `}
+              >
+                {roleLabels[tenant.role]}
+              </span>
+            </div>
+
+            {/* Inactive notice */}
+            {!isActive ? (
+              <span className="text-label/caption text-warn font-medium">
+                Instituição inativa
+              </span>
+            ) : null}
+
+            {/* Switching indicator */}
+            {isSwitching ? (
+              <span className="text-label/caption text-muted font-medium">
+                Entrando…
+              </span>
+            ) : null}
+          </button>
+        );
+      })}
+
+      {/* Option to create a new institution */}
+      <div className="mt-2 flex flex-col items-start gap-2 rounded-sm border border-dashed border-control-border bg-paper p-5">
+        <div className="flex flex-col gap-1">
+          <span className="font-bold text-label/caption text-ink">
+            Precisa cadastrar outra instituição?
+          </span>
+          <span className="text-caption/caption text-muted">
+            Cadastre um novo campus ou faculdade e torne-se o administrador.
+          </span>
+        </div>
+        <Link
+          href="/tenants/nova"
+          className={buttonClass({
+            variant: "outline",
+            size: "md",
+            className: "mt-2",
+          })}
+        >
+          + Criar nova instituição
+        </Link>
+      </div>
+
+      {/* Feedback area */}
+      <div aria-live="polite" className="mt-1">
+        {error ? (
+          <p className="rounded-sm border border-danger bg-danger-surface px-4 py-3 text-label leading-[18px] text-ink">
+            {error}
+          </p>
+        ) : null}
+
+        {success ? (
+          <p className="rounded-sm border border-success bg-success-surface px-4 py-3 text-label leading-[18px] text-ink">
+            Conectado à instituição. O painel das turmas vem a seguir.
+          </p>
+        ) : null}
+      </div>
+
+      {/* Navigation footer */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        {currentTenantId ? (
+          <Link
+            href="/dashboard"
+            className={buttonClass({
+              variant: "outline",
+              size: "md",
+            })}
+          >
+            ← Voltar ao painel
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className={buttonClass({
+              variant: "outline",
+              size: "md",
+            })}
+          >
+            Voltar ao login
+          </Link>
+        )}
+
+        {currentTenantId ? (
+          <Link
+            href="/login"
+            className="text-label text-muted hover:text-ink transition-colors"
+          >
+            Entrar com outra conta
+          </Link>
+        ) : null}
+      </div>
+    </div>
+  );
+}
