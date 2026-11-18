@@ -1,5 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import type { AttendanceRecord } from "../../types";
+import { listSessionRoster, type SessionRosterItem } from "@/services/attendance";
+import {
+  EvidencePhotoDialog,
+  evidencePhotoUrl,
+} from "@/modules/chamadas/components/evidence-photo-dialog";
 import { StatusBadge } from "./table";
 
 export interface ChamadaDetailModalProps {
@@ -7,8 +15,94 @@ export interface ChamadaDetailModalProps {
   onClose: () => void;
 }
 
+function ChamadaEvidenceList({
+  subjectClassId,
+  sessionId,
+  onOpen,
+}: {
+  subjectClassId: string;
+  sessionId: string;
+  onOpen: (photo: { url: string; name: string }) => void;
+}) {
+  const [roster, setRoster] = useState<SessionRosterItem[] | null>(null);
+  const [rosterError, setRosterError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    listSessionRoster(subjectClassId, sessionId)
+      .then((items) => {
+        if (mounted) setRoster(items);
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        setRosterError(
+          err instanceof Error ? err.message : "Não foi possível carregar as evidências."
+        );
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [subjectClassId, sessionId]);
+
+  const photos = (roster ?? []).flatMap((item) => {
+    const url = evidencePhotoUrl(item.evidence_photo_url);
+    return url ? [{ url, name: item.student_name }] : [];
+  });
+
+  return (
+    <div className="mb-5 text-left">
+      <span className="font-sans text-caption uppercase tracking-caps text-muted">
+        Fotos de evidência
+      </span>
+      {roster === null && !rosterError ? (
+        <p className="mt-2 font-sans text-caption text-muted">Carregando evidências…</p>
+      ) : null}
+      {rosterError ? (
+        <p className="mt-2 font-sans text-caption text-danger">{rosterError}</p>
+      ) : null}
+      {roster && photos.length === 0 ? (
+        <p className="mt-2 font-sans text-caption text-muted">
+          Nenhum aluno anexou foto nesta chamada.
+        </p>
+      ) : null}
+      {photos.length > 0 ? (
+        <ul className="mt-2 flex flex-col gap-2">
+          {photos.map((item) => (
+            <li key={`${item.name}-${item.url}`}>
+              <button
+                type="button"
+                onClick={() => onOpen(item)}
+                className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-border bg-white p-2 text-left hover:bg-surface"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- a URL vem do storage e o host não é fixo */}
+                <img
+                  src={item.url}
+                  alt={`Foto de evidência de ${item.name}`}
+                  className="h-12 w-12 shrink-0 rounded-md bg-ink object-cover"
+                />
+                <span className="min-w-0 flex-1 truncate font-sans text-label font-semibold text-ink">
+                  {item.name}
+                </span>
+                <span className="shrink-0 rounded border border-border px-2.5 py-1 font-sans text-caption font-bold text-ink">
+                  Ver
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 export function ChamadaDetailModal({ call, onClose }: ChamadaDetailModalProps) {
+  const [photo, setPhoto] = useState<{ url: string; name: string; sessionId: string } | null>(
+    null
+  );
+
   if (!call) return null;
+
+  const visiblePhoto = photo?.sessionId === call.id ? photo : null;
 
   return (
     <div
@@ -18,7 +112,7 @@ export function ChamadaDetailModal({ call, onClose }: ChamadaDetailModalProps) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-xl border border-border bg-white p-6 shadow-2xl transition-all"
+        className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-border bg-white p-6 shadow-2xl transition-all"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -57,6 +151,7 @@ export function ChamadaDetailModal({ call, onClose }: ChamadaDetailModalProps) {
           </button>
         </div>
 
+        <div className="min-h-0 flex-1 overflow-y-auto">
         {/* Modal Body */}
         <div className="grid grid-cols-2 gap-4 py-5 text-left">
           <div className="rounded-lg border border-border bg-surface/50 p-3">
@@ -119,6 +214,15 @@ export function ChamadaDetailModal({ call, onClose }: ChamadaDetailModalProps) {
           </div>
         </div>
 
+        {call.subjectClassId ? (
+          <ChamadaEvidenceList
+            key={call.id}
+            subjectClassId={call.subjectClassId}
+            sessionId={call.id}
+            onOpen={(item) => setPhoto({ ...item, sessionId: call.id })}
+          />
+        ) : null}
+
         {call.notes && (
           <div className="mb-5 rounded-lg border border-border bg-[#FAFAFA] p-3 text-left">
             <span className="font-sans text-caption uppercase tracking-caps text-muted">
@@ -129,6 +233,7 @@ export function ChamadaDetailModal({ call, onClose }: ChamadaDetailModalProps) {
             </p>
           </div>
         )}
+        </div>
 
         {/* Modal Actions */}
         <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
@@ -184,6 +289,11 @@ export function ChamadaDetailModal({ call, onClose }: ChamadaDetailModalProps) {
           </Link>
         </div>
       </div>
+      <EvidencePhotoDialog
+        url={visiblePhoto?.url ?? null}
+        studentName={visiblePhoto?.name}
+        onClose={() => setPhoto(null)}
+      />
     </div>
   );
 }
