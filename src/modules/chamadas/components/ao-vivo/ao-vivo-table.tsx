@@ -27,7 +27,7 @@ export function AoVivoTable({
         <span className="w-[88px] shrink-0 text-right text-label font-bold tracking-caps uppercase text-muted">
           DISTÂNCIA
         </span>
-        <span className="w-[230px] shrink-0 text-right text-label font-bold tracking-caps uppercase text-muted">
+        <span className="w-[280px] shrink-0 text-right text-label font-bold tracking-caps uppercase text-muted">
           STATUS / AUDITORIA
         </span>
       </div>
