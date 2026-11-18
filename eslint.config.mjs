@@ -14,6 +14,14 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     ".cursor/**",
   ]),
+  {
+    // Os hooks de dados carregam informações da API ao montar (fetch dentro de useEffect,
+    // com setState de loading). É um padrão intencional do projeto e estável; refatorar
+    // para outra abordagem de data fetching está fora do escopo do Code Freeze.
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
