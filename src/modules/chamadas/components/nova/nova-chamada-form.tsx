@@ -522,7 +522,7 @@ export function NovaChamadaForm({
       <div className="flex shrink-0 flex-col gap-2.5 border-t border-border bg-paper px-9 py-5">
         <button
           type="button"
-          disabled={submitting || !selectedClass}
+          disabled={submitting || !selectedClass || !selectedClass.active}
           onClick={handleSubmit}
           className="flex h-[60px] shrink-0 cursor-pointer items-center gap-3.5 rounded-xl bg-ink px-5 transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
         >
@@ -537,17 +537,21 @@ export function NovaChamadaForm({
             <span className="text-body font-bold leading-[115%] tracking-[-0.01em] text-on-ink">
               {submitting
                 ? "Iniciando chamada..."
-                : selectedClass
-                  ? "Iniciar chamada agora"
-                  : "Selecione uma turma"}
+                : selectedClass && !selectedClass.active
+                  ? "Turma inativa"
+                  : selectedClass
+                    ? "Iniciar chamada agora"
+                    : "Selecione uma turma"}
             </span>
             <span className="text-[11px] leading-[14px] text-on-ink-subtle">
-              {selectedClass
-                ? "Clique aqui ou pressione ↵ Enter"
-                : "Escolha a turma no formulário para habilitar"}
+              {selectedClass && !selectedClass.active
+                ? "Reative a turma para abrir uma chamada"
+                : selectedClass
+                  ? "Clique aqui ou pressione ↵ Enter"
+                  : "Escolha a turma no formulário para habilitar"}
             </span>
           </div>
-          {selectedClass && (
+          {selectedClass?.active && (
             <div className="flex h-[26px] shrink-0 items-center justify-center rounded-sm border border-on-ink-border px-[9px]">
               <span className="font-mono text-caption/caption text-on-ink-subtle">
                 ↵
@@ -559,7 +563,7 @@ export function NovaChamadaForm({
         <div className="flex items-center justify-center gap-1.5">
           <InfoIcon />
           <span className="text-[11px] leading-[14px] text-on-ink-muted">
-            {selectedClass
+            {selectedClass?.active
               ? `${studentCount} alunos serão notificados imediatamente ao iniciar`
               : "Nenhum aluno será notificado até que a chamada seja iniciada"}
           </span>
