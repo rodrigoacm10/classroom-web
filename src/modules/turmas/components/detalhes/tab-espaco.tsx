@@ -88,12 +88,23 @@ export function TabEspaco({ turma, room }: TabEspacoProps) {
             >
               Gerenciar salas físicas
             </Link>
-            <Link
-              href={`/dashboard/chamadas/nova?turma=${turma.id}`}
-              className="flex-1 rounded-lg bg-ink py-2.5 text-center text-label font-bold text-white hover:opacity-90 transition-opacity"
-            >
-              Testar chamada agora
-            </Link>
+            {turma.active ? (
+              <Link
+                href={`/dashboard/chamadas/nova?turma=${turma.id}`}
+                className="flex-1 rounded-lg bg-ink py-2.5 text-center text-label font-bold text-white hover:opacity-90 transition-opacity"
+              >
+                Testar chamada agora
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                title="Não é possível abrir chamada para uma turma inativa."
+                className="flex-1 cursor-not-allowed rounded-lg bg-ink py-2.5 text-center text-label font-bold text-white opacity-40"
+              >
+                Testar chamada agora
+              </button>
+            )}
           </div>
         </div>
       </div>
