@@ -22,6 +22,10 @@ import {
   type SessionRosterItem,
 } from "@/services/attendance";
 import { getRoom, type Room } from "@/services/rooms";
+import {
+  EvidencePhotoDialog,
+  evidencePhotoUrl,
+} from "@/modules/chamadas/components/evidence-photo-dialog";
 
 export interface AuditoriaPresencaModalProps {
   isOpen: boolean;
@@ -53,7 +57,8 @@ export function AuditoriaPresencaModal({
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [note, setNote] = useState("");
-  const [showMap, setShowMap] = useState(false);
+  const [mapRecordId, setMapRecordId] = useState<string | null>(null);
+  const [photoRecordId, setPhotoRecordId] = useState<string | null>(null);
 
   const cachedRoomId = useRef<string | null>(null);
 
@@ -103,8 +108,6 @@ export function AuditoriaPresencaModal({
 
   // Busca detalhes do registro de presença
   useEffect(() => {
-    setShowMap(false);
-
     if (!isOpen || !studentItem?.record_id) {
       setRecord(null);
       setFetchError(null);
@@ -181,6 +184,10 @@ export function AuditoriaPresencaModal({
       : null;
 
   const hasCoordinates = Boolean(record?.latitude != null && record?.longitude != null);
+  const photoUrl = evidencePhotoUrl(record?.evidence_photo_url);
+  const recordId = studentItem.record_id;
+  const showMap = recordId != null && mapRecordId === recordId;
+  const photoOpen = recordId != null && photoRecordId === recordId;
 
   return (
     <div
@@ -456,12 +463,46 @@ export function AuditoriaPresencaModal({
                     </div>
                   </div>
 
+                  {photoUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (recordId) setPhotoRecordId(recordId);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-lg border border-border bg-white p-2 text-left shadow-2xs hover:border-ink/30 hover:bg-surface transition-all cursor-pointer"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- a URL vem do storage e o host não é fixo */}
+                      <img
+                        src={photoUrl}
+                        alt={`Foto de evidência de ${studentItem.student_name}`}
+                        className="h-16 w-16 shrink-0 rounded-md bg-ink object-cover"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-sans text-label font-semibold text-ink">
+                          Foto de evidência
+                        </span>
+                        <span className="block font-sans text-caption text-muted">
+                          Enviada pelo aluno nesta confirmação
+                        </span>
+                      </span>
+                      <span className="shrink-0 rounded-lg border border-border px-2.5 py-1 font-sans text-caption font-bold text-ink">
+                        Ver
+                      </span>
+                    </button>
+                  ) : record ? (
+                    <p className="rounded-lg border border-border bg-[#FAFAFA] px-3.5 py-2.5 text-left font-sans text-caption text-muted">
+                      Este aluno não anexou foto de evidência.
+                    </p>
+                  ) : null}
+
                   {/* Botão para carregar o mapa interativo sob demanda */}
                   {hasCoordinates ? (
                     <div className="pt-1">
                       <button
                         type="button"
-                        onClick={() => setShowMap((prev) => !prev)}
+                        onClick={() =>
+                          setMapRecordId((current) => (current === recordId ? null : recordId))
+                        }
                         className="flex w-full items-center justify-between rounded-lg border border-border bg-white px-3.5 py-2.5 text-label font-semibold text-ink shadow-2xs hover:bg-surface hover:border-ink/30 transition-all cursor-pointer"
                       >
                         <div className="flex items-center gap-2">
@@ -678,7 +719,7 @@ export function AuditoriaPresencaModal({
                   </div>
                   {record.review_note && (
                     <p className="text-caption text-ink mt-1 italic">
-                      "{record.review_note}"
+                      “{record.review_note}”
                     </p>
                   )}
                 </div>
@@ -747,6 +788,11 @@ export function AuditoriaPresencaModal({
           )}
         </div>
       </div>
+      <EvidencePhotoDialog
+        url={photoOpen ? photoUrl : null}
+        studentName={studentItem.student_name}
+        onClose={() => setPhotoRecordId(null)}
+      />
     </div>
   );
 }
