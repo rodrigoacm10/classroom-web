@@ -18,7 +18,7 @@ export function RelatoriosPrintHeader({ report }: RelatoriosPrintHeaderProps) {
       <div className="flex items-start justify-between">
         <div>
           <div className="text-[12px] font-bold tracking-widest uppercase text-muted">
-            Locus Classroom • Relatório Oficial de Assiduidade
+            Locus • Relatório Oficial de Assiduidade
           </div>
           <h1 className="text-[26px] font-extrabold text-ink tracking-tight mt-1">
             {report.subject_class_name}
