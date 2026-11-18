@@ -110,6 +110,7 @@ export function TurmaDetalhes({ id }: { id: string }) {
         {activeTab === "sessions" && (
           <TabSessoes
             turmaId={turma.id}
+            active={turma.active}
             defaultRoomName={turma.room_name}
             sessions={sessions}
             loadingSessions={loadingSessions}
