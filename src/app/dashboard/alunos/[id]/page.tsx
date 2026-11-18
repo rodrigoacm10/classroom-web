@@ -3,7 +3,7 @@ import { AlunoDetalhesPage } from "@/modules/alunos";
 
 export const metadata: Metadata = {
   title: "Ficha do Aluno — Locus",
-  description: "Histórico acadêmico, turmas matriculadas e controle de chamadas do aluno no Locus Classroom.",
+  description: "Histórico acadêmico, turmas matriculadas e controle de chamadas do aluno no Locus.",
 };
 
 type Props = {
