@@ -8,6 +8,7 @@ import type { AttendanceSessionResponse } from "@/services/attendance";
 
 export interface TabSessoesProps {
   turmaId: string;
+  active?: boolean;
   defaultRoomName?: string | null;
   sessions: AttendanceSessionResponse[];
   loadingSessions: boolean;
@@ -15,6 +16,7 @@ export interface TabSessoesProps {
 
 export function TabSessoes({
   turmaId,
+  active = true,
   defaultRoomName,
   sessions,
   loadingSessions,
@@ -31,13 +33,25 @@ export function TabSessoes({
           </p>
         </div>
 
-        <Link
-          href={`/dashboard/chamadas/nova?turma=${turmaId}`}
-          className="flex items-center gap-1.5 rounded-lg bg-ink px-4 py-2 text-label font-bold text-white transition-opacity hover:opacity-90 shadow-xs"
-        >
-          <PlusIcon size={14} />
-          <span>Nova chamada</span>
-        </Link>
+        {active ? (
+          <Link
+            href={`/dashboard/chamadas/nova?turma=${turmaId}`}
+            className="flex items-center gap-1.5 rounded-lg bg-ink px-4 py-2 text-label font-bold text-white transition-opacity hover:opacity-90 shadow-xs"
+          >
+            <PlusIcon size={14} />
+            <span>Nova chamada</span>
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled
+            title="Não é possível abrir chamada para uma turma inativa."
+            className="flex cursor-not-allowed items-center gap-1.5 rounded-lg bg-ink px-4 py-2 text-label font-bold text-white shadow-xs opacity-40"
+          >
+            <PlusIcon size={14} />
+            <span>Nova chamada</span>
+          </button>
+        )}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-white shadow-xs">

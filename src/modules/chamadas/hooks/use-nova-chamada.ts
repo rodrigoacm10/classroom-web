@@ -14,6 +14,8 @@ import {
 } from "@/lib/api";
 import { DURATION_OPTIONS, type Duration } from "../types";
 
+const INACTIVE_CLASS_MESSAGE = "Não é possível abrir chamada para uma turma inativa.";
+
 export function useNovaChamada() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -143,12 +145,14 @@ export function useNovaChamada() {
             if (matched) {
               setSelectedClass(matched);
               setSelectedRoomId(matched.room_id ?? null);
+              if (!matched.active) setError(INACTIVE_CLASS_MESSAGE);
             } else {
               try {
                 const specificClass = await getSubjectClass(queryTurmaId);
                 if (specificClass && isMounted) {
                   setSelectedClass(specificClass);
                   setSelectedRoomId(specificClass.room_id ?? null);
+                  if (!specificClass.active) setError(INACTIVE_CLASS_MESSAGE);
                   setClasses((prev) =>
                     prev.some((c) => c.id === specificClass.id) ? prev : [specificClass, ...prev]
                   );
@@ -196,12 +200,14 @@ export function useNovaChamada() {
       if (matched) {
         setSelectedClass(matched);
         setSelectedRoomId(matched.room_id ?? null);
+        if (!matched.active) setError(INACTIVE_CLASS_MESSAGE);
       } else {
         try {
           const specificClass = await getSubjectClass(queryTurmaId!);
           if (specificClass && isMounted) {
             setSelectedClass(specificClass);
             setSelectedRoomId(specificClass.room_id ?? null);
+            if (!specificClass.active) setError(INACTIVE_CLASS_MESSAGE);
             setClasses((prev) =>
               prev.some((c) => c.id === specificClass.id) ? prev : [specificClass, ...prev]
             );
@@ -337,6 +343,11 @@ export function useNovaChamada() {
       return;
     }
 
+    if (!selectedClass.active) {
+      setError(INACTIVE_CLASS_MESSAGE);
+      return;
+    }
+
     if (locationMode === "current_gps") {
       if (professorLat === null || professorLng === null) {
         setError(
@@ -447,6 +458,7 @@ export function useNovaChamada() {
     setSelectedRoomId(item.room_id ?? null);
     setClassReport(null);
     setTurmaDropdownOpen(false);
+    setError(item.active ? null : INACTIVE_CLASS_MESSAGE);
   }
 
   function handleSelectRoom(room: Room) {

@@ -3,7 +3,7 @@ import { AlunosPage } from "@/modules/alunos";
 
 export const metadata: Metadata = {
   title: "Alunos — Locus",
-  description: "Gestão de alunos, turmas vinculadas e frequência acadêmica no Locus Classroom.",
+  description: "Gestão de alunos, turmas vinculadas e frequência acadêmica no Locus.",
 };
 
 export default function AlunosRoutePage() {

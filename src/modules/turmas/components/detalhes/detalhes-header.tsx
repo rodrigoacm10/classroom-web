@@ -102,13 +102,25 @@ export function DetalhesHeader({ turma }: DetalhesHeaderProps) {
           ← Voltar
         </button>
 
-        <Link
-          href={`/dashboard/chamadas/nova?turma=${turma.id}`}
-          className="flex h-10 items-center gap-2 rounded-lg bg-ink px-4 text-label font-bold text-white shadow-xs transition-opacity hover:opacity-90 active:scale-[0.98]"
-        >
-          <PlusIcon size={14} />
-          <span>Abrir chamada</span>
-        </Link>
+        {turma.active ? (
+          <Link
+            href={`/dashboard/chamadas/nova?turma=${turma.id}`}
+            className="flex h-10 items-center gap-2 rounded-lg bg-ink px-4 text-label font-bold text-white shadow-xs transition-opacity hover:opacity-90 active:scale-[0.98]"
+          >
+            <PlusIcon size={14} />
+            <span>Abrir chamada</span>
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled
+            title="Não é possível abrir chamada para uma turma inativa."
+            className="flex h-10 cursor-not-allowed items-center gap-2 rounded-lg bg-ink px-4 text-label font-bold text-white shadow-xs opacity-40"
+          >
+            <PlusIcon size={14} />
+            <span>Abrir chamada</span>
+          </button>
+        )}
       </div>
     </div>
   );

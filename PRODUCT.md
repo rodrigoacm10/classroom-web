@@ -13,7 +13,7 @@ Administradores, Coordenadores e Professores de instituições de ensino acadêm
 Plataforma de gestão acadêmica, controle de presença via geofencing e onboarding de membros (alunos, professores, coordenadores e administradores) com convites por e-mail e links diretos com pré-vínculo de turmas.
 
 ## Positioning
-Locus Classroom: gestão de presença e membros multi-tenant sem burocracia ou hardware dedicado, com auditoria em tempo real e fluxo de convites integrado.
+Locus: gestão de presença e membros multi-tenant sem burocracia ou hardware dedicado, com auditoria em tempo real e fluxo de convites integrado.
 
 ## Operating Context
 Dashboard web responsivo (desktop/tablet), consumindo API FastAPI assíncrona com autenticação multi-tenant baseada em JWT com claims enriquecidas por instituição ativa.

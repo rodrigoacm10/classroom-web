@@ -67,6 +67,7 @@ export type SessionRosterItem = {
   within_radius: boolean | null;
   /** "regular" | "irregular" | "approved" | "rejected" | null */
   record_status: "regular" | "irregular" | "approved" | "rejected" | string | null;
+  evidence_photo_url?: string | null;
 };
 
 /** Detalhes de auditoria de um registro de presença individual */

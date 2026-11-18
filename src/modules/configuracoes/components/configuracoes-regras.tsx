@@ -107,7 +107,7 @@ export function ConfiguracoesRegras() {
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-success/15 text-success">
                 <CheckIcon size={10} />
               </span>
-              <span className="font-medium">Validação PostGIS ST_Distance</span>
+              <span className="font-medium">Validação de distância (Haversine)</span>
             </div>
 
             <div className="flex items-center gap-2">
