@@ -5,7 +5,7 @@ import { RelatoriosPage } from "@/modules/relatorios";
 export const metadata: Metadata = {
   title: "Relatórios — Locus",
   description:
-    "Auditoria de frequência acadêmica e telemetria geoespacial consolidada por turma no Locus Classroom.",
+    "Auditoria de frequência acadêmica e telemetria geoespacial consolidada por turma no Locus.",
 };
 
 export default function RelatoriosRoutePage() {
