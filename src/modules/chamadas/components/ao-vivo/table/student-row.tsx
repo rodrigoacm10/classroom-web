@@ -1,7 +1,13 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import type { SessionRosterItem } from "@/lib/api";
 import { formatDistance, formatTime } from "@/lib/utils";
 import { EyeIcon } from "@/components/icons";
+import {
+  EvidencePhotoDialog,
+  evidencePhotoUrl,
+} from "@/modules/chamadas/components/evidence-photo-dialog";
 import { AoVivoAvatar } from "./avatar";
 import { AoVivoStatusBadge } from "./status-badge";
 
@@ -23,6 +29,8 @@ export function AoVivoStudentRow({ item, onReview }: AoVivoStudentRowProps) {
     (item.record_status === "approved" || item.record_status === "rejected");
 
   const canReview = Boolean(item.record_id);
+  const photoUrl = evidencePhotoUrl(item.evidence_photo_url);
+  const [photoOpen, setPhotoOpen] = useState(false);
 
   return (
     <div
@@ -63,8 +71,23 @@ export function AoVivoStudentRow({ item, onReview }: AoVivoStudentRowProps) {
         {formatDistance(item.distance_meters)}
       </span>
 
-      <div className="w-[230px] shrink-0 flex items-center justify-end gap-2">
+      <div className="flex w-[280px] shrink-0 flex-wrap items-center justify-end gap-2">
         <AoVivoStatusBadge item={item} />
+
+        {photoUrl && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setPhotoOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-1 text-caption font-bold text-ink shadow-2xs hover:bg-surface hover:border-ink/40 transition-all cursor-pointer"
+            title="Ver foto de evidência"
+          >
+            <EyeIcon size={13} className="text-muted" />
+            <span>Ver</span>
+          </button>
+        )}
 
         {isIrregular && (
           <button
@@ -96,6 +119,11 @@ export function AoVivoStudentRow({ item, onReview }: AoVivoStudentRowProps) {
           </button>
         )}
       </div>
+      <EvidencePhotoDialog
+        url={photoOpen ? photoUrl : null}
+        studentName={item.student_name}
+        onClose={() => setPhotoOpen(false)}
+      />
     </div>
   );
 }
