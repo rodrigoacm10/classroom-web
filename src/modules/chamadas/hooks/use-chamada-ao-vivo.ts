@@ -184,7 +184,11 @@ export function useChamadaAoVivo({ subjectClassId, sessionId }: UseChamadaAoVivo
   // ─── Metadata ───────────────────────────────────────────────────────────────
   const disciplineName = session?.subject_class?.discipline_name ?? "";
   const subjectClassName = session?.subject_class?.name ?? "";
-  const roomName = session?.room?.name ?? null;
+  const isCustomLocation =
+    session?.custom_latitude != null && session?.custom_longitude != null;
+  const roomName = isCustomLocation
+    ? `Localização do professor (Raio ${session?.custom_tolerance_radius_meters ?? 50}m)`
+    : session?.room?.name ?? null;
   const dayCode = session?.day_code ?? "—";
   const durationTotal = session?.duration_minutes ?? 15;
   const isOpen = session?.status === "open";
