@@ -363,15 +363,17 @@ export function useNovaChamada() {
 
       const payload: Parameters<typeof openAttendanceSession>[1] = {
         duration_minutes: duration,
-        room_id: selectedRoomId || undefined,
+        ...(locationMode === "current_gps"
+          ? {
+              use_professor_location: true,
+              latitude: professorLat,
+              longitude: professorLng,
+              tolerance_radius_meters: customRadius,
+            }
+          : {
+              room_id: selectedRoomId || undefined,
+            }),
       };
-
-      if (locationMode === "current_gps") {
-        payload.use_professor_location = true;
-        payload.latitude = professorLat;
-        payload.longitude = professorLng;
-        payload.tolerance_radius_meters = customRadius;
-      }
 
       const session = await openAttendanceSession(selectedClass.id, payload);
 
