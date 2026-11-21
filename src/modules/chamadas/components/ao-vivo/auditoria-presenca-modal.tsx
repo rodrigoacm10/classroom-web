@@ -104,7 +104,11 @@ export function AuditoriaPresencaModal({
     session?.custom_tolerance_radius_meters ??
     room?.tolerance_radius_meters ??
     50;
-  const roomName = session?.room?.name ?? room?.name ?? "Sala de Aula";
+  const isCustomLocation =
+    session?.custom_latitude != null && session?.custom_longitude != null;
+  const roomName = isCustomLocation
+    ? "Localização do professor"
+    : session?.room?.name ?? room?.name ?? "Sala de Aula";
 
   // Busca detalhes do registro de presença
   useEffect(() => {
