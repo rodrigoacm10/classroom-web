@@ -18,3 +18,4 @@ export * from "@/services/attendance";
 export * from "@/services/user";
 export * from "@/services/rooms";
 export * from "@/services/reports";
+export * from "@/services/assistant";
