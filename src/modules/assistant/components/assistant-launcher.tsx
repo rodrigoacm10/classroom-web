@@ -69,6 +69,7 @@ export function AssistantLauncher() {
         onStartNewConversation={chat.startNewConversation}
         onDeleteConversation={chat.removeConversation}
         onSendMessage={chat.sendMessage}
+        onSubmitFeedback={chat.submitFeedback}
       />
     </div>
   );

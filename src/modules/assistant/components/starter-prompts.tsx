@@ -15,6 +15,15 @@ type PromptSuggestion = {
 
 const PROFESSOR_PROMPTS: PromptSuggestion[] = [
   {
+    title: "Chamadas abertas agora",
+    question: "Tem alguma chamada aberta agora nas minhas turmas?",
+  },
+  {
+    title: "Resumo de frequência e risco",
+    question:
+      "Qual o resumo geral das minhas turmas e quantos alunos estão abaixo de 75%?",
+  },
+  {
     title: "Abrir chamada ao vivo",
     question: "Como abrir uma chamada ao vivo para minha turma?",
   },
@@ -23,28 +32,39 @@ const PROFESSOR_PROMPTS: PromptSuggestion[] = [
     question:
       "Qual a diferença entre presença irregular e rejeitada e como auditar?",
   },
-  {
-    title: "Raio de geofence da sala",
-    question:
-      "Como funciona o raio de tolerância de uma sala e como cadastrar uma nova?",
-  },
-  {
-    title: "Regra de 75% de frequência",
-    question:
-      "Como funciona o limite de 75% nos relatórios de frequência da turma?",
-  },
 ];
 
 const ADMIN_PROMPTS: PromptSuggestion[] = [
   {
-    title: "Convidar professores e alunos",
+    title: "Resumo operacional da instituição",
     question:
-      "Como enviar convites para novos professores, coordenadores ou alunos?",
+      "Como está o resumo geral da instituição e quantos alunos estão em risco (< 75%)?",
+  },
+  {
+    title: "Chamadas abertas agora",
+    question: "Há alguma chamada aberta neste momento na instituição?",
+  },
+  {
+    title: "Convites e equipe",
+    question:
+      "Quantos convites pendentes e quantos professores ativos temos na instituição?",
   },
   {
     title: "Configurar salas e geofence",
     question:
       "Como funciona o raio de tolerância de uma sala e como cadastrar uma nova?",
+  },
+];
+
+const COORDINATOR_PROMPTS: PromptSuggestion[] = [
+  {
+    title: "Resumo operacional da instituição",
+    question:
+      "Como está o resumo geral da instituição e quantos alunos estão em risco (< 75%)?",
+  },
+  {
+    title: "Chamadas abertas agora",
+    question: "Há alguma chamada aberta neste momento na instituição?",
   },
   {
     title: "Abrir e auditar chamadas",
@@ -52,9 +72,9 @@ const ADMIN_PROMPTS: PromptSuggestion[] = [
       "Como abrir uma chamada ao vivo e auditar registros de presença irregulares?",
   },
   {
-    title: "Relatórios e regra de 75%",
+    title: "Configurar salas e geofence",
     question:
-      "Como gerar relatórios de frequência e identificar alunos abaixo de 75%?",
+      "Como funciona o raio de tolerância de uma sala e como cadastrar uma nova?",
   },
 ];
 
@@ -64,9 +84,11 @@ export function StarterPrompts({
   disabled = false,
 }: StarterPromptsProps) {
   const suggestions =
-    role === "admin" || role === "coordenador"
+    role === "admin"
       ? ADMIN_PROMPTS
-      : PROFESSOR_PROMPTS;
+      : role === "coordenador"
+        ? COORDINATOR_PROMPTS
+        : PROFESSOR_PROMPTS;
 
   return (
     <div className="flex flex-col gap-6 py-4">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import type {
   AssistantRequestStage,
   ChatMessage,
+  FeedbackRating,
   SourceCitation,
   ToolCallTrace,
 } from "@/modules/assistant/types";
@@ -15,6 +16,7 @@ export interface AssistantMessageProps {
   requestStage?: AssistantRequestStage;
   activeToolQuery?: string | null;
   onNavigate?: () => void;
+  onSubmitFeedback?: (messageId: string, rating: FeedbackRating) => void;
 }
 
 const INTERNAL_ROUTE_EXACT = /^(\/dashboard(?:\/[a-zA-Z0-9_-]+)*|\/tenants)$/;
@@ -222,20 +224,37 @@ function renderMarkdownBlocks(
 function ToolCallTraceBadge({
   toolCalls,
   isRunning,
+  requestStage,
   activeQuery,
 }: {
   toolCalls: ToolCallTrace[];
   isRunning: boolean;
+  requestStage: AssistantRequestStage;
   activeQuery?: string | null;
 }) {
   const [expanded, setExpanded] = useState(false);
 
   const primaryCall = toolCalls[toolCalls.length - 1];
+  const toolName =
+    primaryCall?.name ??
+    (requestStage === "querying_data" ? "dados_locus" : "search_locus_docs");
+  const isLiveDataTool =
+    requestStage === "querying_data" || toolName !== "search_locus_docs";
   const queryArg =
     activeQuery ??
     (typeof primaryCall?.arguments?.query === "string"
       ? primaryCall.arguments.query
       : null);
+
+  const runningText = isLiveDataTool
+    ? "Consultando dados do Locus..."
+    : "Consultando base de conhecimento híbrida...";
+  const completedText =
+    toolCalls.length > 1
+      ? `${toolCalls.length} consultas concluídas`
+      : isLiveDataTool
+        ? "Consulta de dados concluída"
+        : "Consulta na documentação concluída";
 
   return (
     <div className="mb-3 rounded-sm border border-border bg-paper px-3 py-2">
@@ -266,12 +285,10 @@ function ToolCallTraceBadge({
             </svg>
           )}
           <span className="font-mono text-[11px] font-semibold text-ink">
-            search_locus_docs
+            {toolName}
           </span>
           <span className="truncate text-caption text-muted">
-            {isRunning
-              ? "Consultando base de conhecimento híbrida..."
-              : "Consulta na documentação concluída"}
+            {isRunning ? runningText : completedText}
           </span>
         </div>
 
@@ -291,6 +308,81 @@ function ToolCallTraceBadge({
           consulta: <span className="text-ink">&quot;{queryArg}&quot;</span>
         </div>
       )}
+    </div>
+  );
+}
+
+function MessageFeedbackBar({
+  rating,
+  onRate,
+}: {
+  rating: FeedbackRating | null | undefined;
+  onRate: (rating: FeedbackRating) => void;
+}) {
+  const isUp = rating === "up";
+  const isDown = rating === "down";
+
+  return (
+    <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-border/70 pt-2">
+      <span className="mr-1 text-[11px] text-muted">Esta resposta ajudou?</span>
+      <button
+        type="button"
+        onClick={() => onRate("up")}
+        aria-label="Marcar resposta como útil"
+        aria-pressed={isUp}
+        title={isUp ? "Remover avaliação positiva" : "Resposta útil"}
+        className={`inline-flex h-7 w-7 items-center justify-center rounded-sm border transition-colors duration-150 cursor-pointer ${
+          isUp
+            ? "border-success/40 bg-success/10 text-success"
+            : "border-transparent text-muted hover:border-border hover:bg-paper hover:text-ink"
+        }`}
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill={isUp ? "currentColor" : "none"}
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={() => onRate("down")}
+        aria-label="Marcar resposta como não útil"
+        aria-pressed={isDown}
+        title={isDown ? "Remover avaliação negativa" : "Resposta não útil"}
+        className={`inline-flex h-7 w-7 items-center justify-center rounded-sm border transition-colors duration-150 cursor-pointer ${
+          isDown
+            ? "border-danger/40 bg-danger-surface text-danger"
+            : "border-transparent text-muted hover:border-border hover:bg-paper hover:text-ink"
+        }`}
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill={isDown ? "currentColor" : "none"}
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
     </div>
   );
 }
@@ -394,6 +486,7 @@ export function AssistantMessage({
   requestStage = "idle",
   activeToolQuery = null,
   onNavigate,
+  onSubmitFeedback,
 }: AssistantMessageProps) {
   const isUser = message.role === "user";
 
@@ -407,13 +500,23 @@ export function AssistantMessage({
     );
   }
 
+  const isRunningTool =
+    isLatestAssistant &&
+    (requestStage === "searching_docs" || requestStage === "querying_data");
   const hasToolCalls =
     (message.tool_calls_used && message.tool_calls_used.length > 0) ||
-    (isLatestAssistant && requestStage === "searching_docs");
+    isRunningTool;
   const isActiveThinking =
     isLatestAssistant &&
     (requestStage === "thinking" ||
-      (requestStage === "searching_docs" && !message.content));
+      ((requestStage === "searching_docs" || requestStage === "querying_data") &&
+        !message.content));
+  const isStreamingThisMessage = isLatestAssistant && requestStage !== "idle";
+  const canSubmitFeedback =
+    Boolean(onSubmitFeedback) &&
+    Boolean(message.content) &&
+    !isStreamingThisMessage &&
+    !message.id.startsWith("assistant-");
 
   if (
     !message.content &&
@@ -430,7 +533,8 @@ export function AssistantMessage({
         {hasToolCalls && (
           <ToolCallTraceBadge
             toolCalls={message.tool_calls_used ?? []}
-            isRunning={isLatestAssistant && requestStage === "searching_docs"}
+            isRunning={isRunningTool}
+            requestStage={isLatestAssistant ? requestStage : "idle"}
             activeQuery={isLatestAssistant ? activeToolQuery : null}
           />
         )}
@@ -464,10 +568,29 @@ export function AssistantMessage({
             </div>
           )}
 
+        {isLatestAssistant &&
+          requestStage === "querying_data" &&
+          !message.content && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="flex items-center gap-2 py-1 text-caption font-medium text-muted"
+            >
+              <span>Consultando dados do Locus...</span>
+            </div>
+          )}
+
         {message.content && renderMarkdownBlocks(message.content, onNavigate)}
 
         {message.sources && message.sources.length > 0 && (
           <SourcesAccordion sources={message.sources} onNavigate={onNavigate} />
+        )}
+
+        {canSubmitFeedback && onSubmitFeedback && (
+          <MessageFeedbackBar
+            rating={message.feedback_rating}
+            onRate={(rating) => onSubmitFeedback(message.id, rating)}
+          />
         )}
       </div>
     </div>

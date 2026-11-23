@@ -6,6 +6,7 @@ import type {
   AssistantRequestStage,
   ChatMessage,
   ConversationSummary,
+  FeedbackRating,
 } from "@/modules/assistant/types";
 import { AssistantMessage } from "./assistant-message";
 import { StarterPrompts } from "./starter-prompts";
@@ -33,6 +34,10 @@ export interface AssistantDrawerProps {
   onStartNewConversation: () => void;
   onDeleteConversation: (conversationId: string) => Promise<void> | void;
   onSendMessage: (content: string) => Promise<void> | void;
+  onSubmitFeedback?: (
+    messageId: string,
+    rating: FeedbackRating,
+  ) => Promise<void> | void;
 }
 
 function clampDrawerWidth(desiredWidth: number): number {
@@ -63,6 +68,7 @@ export function AssistantDrawer({
   onStartNewConversation,
   onDeleteConversation,
   onSendMessage,
+  onSubmitFeedback,
 }: AssistantDrawerProps) {
   const [inputValue, setInputValue] = useState("");
   const [showHistoryList, setShowHistoryList] = useState(false);
@@ -75,7 +81,7 @@ export function AssistantDrawer({
   useEffect(() => {
     if (!isOpen) return;
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [isOpen, messages, isSearchingDocs]);
+  }, [isOpen, messages, isSearchingDocs, requestStage]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -473,6 +479,7 @@ export function AssistantDrawer({
                     requestStage={requestStage}
                     activeToolQuery={activeToolQuery}
                     onNavigate={onClose}
+                    onSubmitFeedback={onSubmitFeedback}
                   />
                 ))}
 
@@ -511,8 +518,8 @@ export function AssistantDrawer({
             </button>
           </div>
           <p className="mt-1.5 text-[11px] text-muted">
-            Respostas baseadas nos guias oficiais do Locus · Enter envia,
-            Shift+Enter quebra linha
+            Respostas baseadas na documentação e nos dados da instituição · Enter
+            envia, Shift+Enter quebra linha
           </p>
         </form>
       </aside>

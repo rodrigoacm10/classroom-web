@@ -9,6 +9,15 @@ export type ToolCallTrace = {
   arguments: Record<string, unknown>;
 };
 
+export type FeedbackRating = "up" | "down";
+
+export type MessageFeedbackResponse = {
+  message_id: string;
+  feedback_rating: FeedbackRating | null;
+  feedback_comment: string | null;
+  feedback_updated_at: string | null;
+};
+
 export type ChatMessage = {
   id: string;
   conversation_id: string;
@@ -20,6 +29,9 @@ export type ChatMessage = {
   tokens_in?: number | null;
   tokens_out?: number | null;
   latency_ms?: number | null;
+  feedback_rating?: FeedbackRating | null;
+  feedback_comment?: string | null;
+  feedback_updated_at?: string | null;
   created_at?: string | null;
 };
 
@@ -36,12 +48,13 @@ export type ConversationDetail = ConversationSummary & {
   messages: ChatMessage[];
 };
 
-export type AssistantStatusStage = "searching_docs";
+export type AssistantStatusStage = "searching_docs" | "querying_data";
 
 export type AssistantRequestStage =
   | "idle"
   | "thinking"
   | "searching_docs"
+  | "querying_data"
   | "streaming";
 
 export type StreamEvent =
