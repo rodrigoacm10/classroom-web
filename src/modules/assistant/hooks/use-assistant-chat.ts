@@ -8,11 +8,13 @@ import {
   getAssistantConversation,
   listAssistantConversations,
   streamAssistantMessage,
+  submitAssistantMessageFeedback,
 } from "@/services/assistant";
 import type {
   AssistantRequestStage,
   ChatMessage,
   ConversationSummary,
+  FeedbackRating,
   ToolCallTrace,
 } from "@/modules/assistant/types";
 
@@ -43,6 +45,7 @@ export function useAssistantChat() {
 
   const isStreaming = requestStage !== "idle";
   const isSearchingDocs = requestStage === "searching_docs";
+  const isQueryingData = requestStage === "querying_data";
 
   const selectConversation = useCallback(async (conversationId: string) => {
     try {
@@ -234,6 +237,29 @@ export function useAssistantChat() {
                       : msg,
                   ),
                 );
+              } else if (event.data.stage === "querying_data") {
+                setRequestStage("querying_data");
+                setActiveToolQuery(null);
+
+                const newTrace: ToolCallTrace = {
+                  name: event.data.tool ?? "querying_data",
+                  arguments: {},
+                };
+
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === optimisticAssistantId
+                      ? {
+                          ...msg,
+                          conversation_id: convId,
+                          tool_calls_used: [
+                            ...(msg.tool_calls_used ?? []),
+                            newTrace,
+                          ],
+                        }
+                      : msg,
+                  ),
+                );
               }
             } else if (event.event === "delta") {
               setRequestStage("streaming");
@@ -305,6 +331,69 @@ export function useAssistantChat() {
     [activeConversationId, messages.length, pathname, requestStage],
   );
 
+  const submitFeedback = useCallback(
+    async (messageId: string, rating: FeedbackRating) => {
+      const target = messages.find((m) => m.id === messageId);
+      if (
+        !target ||
+        target.role !== "assistant" ||
+        target.id.startsWith("assistant-")
+      ) {
+        return;
+      }
+
+      const conversationId = target.conversation_id || activeConversationId;
+      if (!conversationId || conversationId === "pending") {
+        return;
+      }
+
+      const previousRating = target.feedback_rating ?? null;
+      const nextRating: FeedbackRating | null =
+        previousRating === rating ? null : rating;
+
+      setError(null);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId ? { ...msg, feedback_rating: nextRating } : msg,
+        ),
+      );
+
+      try {
+        const response = await submitAssistantMessageFeedback({
+          conversationId,
+          messageId,
+          rating: nextRating,
+        });
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === messageId
+              ? {
+                  ...msg,
+                  feedback_rating: response.feedback_rating,
+                  feedback_comment: response.feedback_comment,
+                  feedback_updated_at: response.feedback_updated_at,
+                }
+              : msg,
+          ),
+        );
+      } catch (err) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === messageId
+              ? { ...msg, feedback_rating: previousRating }
+              : msg,
+          ),
+        );
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Não foi possível salvar sua avaliação.",
+        );
+      }
+    },
+    [activeConversationId, messages],
+  );
+
   return {
     isOpen,
     setIsOpen,
@@ -320,6 +409,7 @@ export function useAssistantChat() {
     activeToolQuery,
     isStreaming,
     isSearchingDocs,
+    isQueryingData,
     error,
     clearError: () => setError(null),
     loadConversations,
@@ -327,5 +417,6 @@ export function useAssistantChat() {
     startNewConversation,
     removeConversation,
     sendMessage,
+    submitFeedback,
   };
 }
