@@ -10,6 +10,8 @@ import type {
   AssistantStatusStage,
   ConversationDetail,
   ConversationSummary,
+  FeedbackRating,
+  MessageFeedbackResponse,
   SourceCitation,
   StreamEvent,
   ToolCallTrace,
@@ -21,6 +23,8 @@ export type {
   ChatMessage,
   ConversationDetail,
   ConversationSummary,
+  FeedbackRating,
+  MessageFeedbackResponse,
   SourceCitation,
   StreamEvent,
   ToolCallTrace,
@@ -88,6 +92,31 @@ export async function deleteAssistantConversation(
   });
 }
 
+export type SubmitMessageFeedbackParams = {
+  conversationId: string;
+  messageId: string;
+  rating: FeedbackRating | null;
+  comment?: string | null;
+};
+
+/**
+ * Registra, altera ou remove avaliação (thumbs up / down) em uma mensagem do assistente.
+ */
+export async function submitAssistantMessageFeedback({
+  conversationId,
+  messageId,
+  rating,
+  comment = null,
+}: SubmitMessageFeedbackParams): Promise<MessageFeedbackResponse> {
+  return api<MessageFeedbackResponse>(
+    `/assistant/conversations/${conversationId}/messages/${messageId}/feedback`,
+    {
+      method: "PUT",
+      body: { rating, comment },
+    },
+  );
+}
+
 /**
  * Converte um bloco SSE (`event: ...\ndata: ...`) em um `StreamEvent` tipado.
  */
@@ -115,10 +144,12 @@ export function parseSSEFrame(rawBlock: string): StreamEvent | null {
     const parsed = JSON.parse(dataLines.join("\n")) as Record<string, unknown>;
 
     if (eventName === "status") {
+      const stage: AssistantStatusStage =
+        parsed.stage === "querying_data" ? "querying_data" : "searching_docs";
       return {
         event: "status",
         data: {
-          stage: (parsed.stage as AssistantStatusStage) ?? "searching_docs",
+          stage,
           tool: typeof parsed.tool === "string" ? parsed.tool : undefined,
           query: typeof parsed.query === "string" ? parsed.query : undefined,
         },
@@ -297,5 +328,6 @@ export const assistantService = {
   listConversations: listAssistantConversations,
   getConversation: getAssistantConversation,
   deleteConversation: deleteAssistantConversation,
+  submitFeedback: submitAssistantMessageFeedback,
   streamMessage: streamAssistantMessage,
 };
